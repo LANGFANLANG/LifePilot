@@ -3,6 +3,7 @@ package com.lifepilot;
 import com.lifepilot.agent.AiClient;
 import com.lifepilot.repository.ChatMessageRepository;
 import com.lifepilot.repository.ConversationRepository;
+import com.lifepilot.repository.ExecutionLogRepository;
 import com.lifepilot.repository.NoteRepository;
 import com.lifepilot.repository.TodoRepository;
 import org.junit.jupiter.api.Test;
@@ -32,6 +33,9 @@ class LifePilotApplicationTests {
 
     @MockBean
     private NoteRepository noteRepository;
+
+    @MockBean
+    private ExecutionLogRepository executionLogRepository;
 
     @Test
     void contextLoads() {

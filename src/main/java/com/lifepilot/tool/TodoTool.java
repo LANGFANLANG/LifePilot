@@ -1,12 +1,15 @@
 package com.lifepilot.tool;
 
+import com.lifepilot.service.ExecutionLogService;
 import com.lifepilot.service.TodoService;
 import com.lifepilot.service.dto.CreateTodoCommand;
+import com.lifepilot.service.dto.TodoView;
 import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.ai.tool.annotation.ToolParam;
 import org.springframework.stereotype.Component;
 
 import java.time.OffsetDateTime;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -16,14 +19,17 @@ import java.util.UUID;
 public class TodoTool {
 
     private final TodoService todoService;
+    private final ExecutionLogService executionLogService;
 
     /**
      * 创建待办事项工具。
      *
      * @param todoService 待办事项应用服务
+     * @param executionLogService 执行日志应用服务
      */
-    public TodoTool(TodoService todoService) {
+    public TodoTool(TodoService todoService, ExecutionLogService executionLogService) {
         this.todoService = todoService;
+        this.executionLogService = executionLogService;
     }
 
     /**
@@ -40,7 +46,14 @@ public class TodoTool {
             @ToolParam(required = false, description = "待办事项详情") String description,
             @ToolParam(required = false, description = "截止时间，使用 ISO-8601 日期时间格式") OffsetDateTime dueAt
     ) {
-        return ToolResult.success("todo created", todoService.create(new CreateTodoCommand(title, description, dueAt)));
+        try {
+            TodoView todo = todoService.create(new CreateTodoCommand(title, description, dueAt));
+            executionLogService.recordSuccess(null, "todo.create", title, todo.toString());
+            return ToolResult.success("todo created", todo);
+        } catch (RuntimeException ex) {
+            executionLogService.recordFailure(null, "todo.create", title, ex.getMessage());
+            throw ex;
+        }
     }
 
     /**
@@ -50,7 +63,14 @@ public class TodoTool {
      */
     @Tool(description = "列出全部待办事项")
     public ToolResult listTodos() {
-        return ToolResult.success("todos listed", todoService.list());
+        try {
+            List<TodoView> todos = todoService.list();
+            executionLogService.recordSuccess(null, "todo.list", "", todos.toString());
+            return ToolResult.success("todos listed", todos);
+        } catch (RuntimeException ex) {
+            executionLogService.recordFailure(null, "todo.list", "", ex.getMessage());
+            throw ex;
+        }
     }
 
     /**
@@ -61,6 +81,14 @@ public class TodoTool {
      */
     @Tool(description = "将指定待办事项标记为已完成")
     public ToolResult completeTodo(@ToolParam(description = "待办事项 ID") UUID id) {
-        return ToolResult.success("todo completed", todoService.complete(id));
+        String input = id.toString();
+        try {
+            TodoView todo = todoService.complete(id);
+            executionLogService.recordSuccess(null, "todo.complete", input, todo.toString());
+            return ToolResult.success("todo completed", todo);
+        } catch (RuntimeException ex) {
+            executionLogService.recordFailure(null, "todo.complete", input, ex.getMessage());
+            throw ex;
+        }
     }
 }

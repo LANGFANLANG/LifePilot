@@ -1,5 +1,6 @@
 package com.lifepilot.tool;
 
+import com.lifepilot.service.ExecutionLogService;
 import com.lifepilot.service.NoteService;
 import com.lifepilot.service.dto.CreateNoteCommand;
 import com.lifepilot.service.dto.NoteView;
@@ -15,6 +16,7 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -23,6 +25,9 @@ class NoteToolTest {
 
     @Mock
     private NoteService noteService;
+
+    @Mock
+    private ExecutionLogService executionLogService;
 
     @InjectMocks
     private NoteTool noteTool;
@@ -37,6 +42,7 @@ class NoteToolTest {
 
         ArgumentCaptor<CreateNoteCommand> captor = ArgumentCaptor.forClass(CreateNoteCommand.class);
         verify(noteService).create(captor.capture());
+        verify(executionLogService).recordSuccess(null, "note.create", "Meeting notes", note.toString());
         assertThat(captor.getValue().title()).isEqualTo("Meeting notes");
         assertThat(result).isEqualTo(ToolResult.success("note created", note));
     }
@@ -49,6 +55,7 @@ class NoteToolTest {
         ToolResult result = noteTool.listNotes();
 
         verify(noteService).list();
+        verify(executionLogService).recordSuccess(null, "note.list", "", notes.toString());
         assertThat(result).isEqualTo(ToolResult.success("notes listed", notes));
     }
 
@@ -61,7 +68,20 @@ class NoteToolTest {
         ToolResult result = noteTool.getNote(noteId);
 
         verify(noteService).get(noteId);
+        verify(executionLogService).recordSuccess(null, "note.get", noteId.toString(), note.toString());
         assertThat(result).isEqualTo(ToolResult.success("note found", note));
+    }
+
+    @Test
+    void recordsFailedNoteExecutionAndRethrows() {
+        UUID noteId = UUID.randomUUID();
+        when(noteService.get(noteId)).thenThrow(new IllegalArgumentException("note not found"));
+
+        assertThatThrownBy(() -> noteTool.getNote(noteId))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("note not found");
+
+        verify(executionLogService).recordFailure(null, "note.get", noteId.toString(), "note not found");
     }
 
     private static NoteView note(String title, String content) {

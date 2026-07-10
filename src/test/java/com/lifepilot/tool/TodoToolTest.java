@@ -1,6 +1,7 @@
 package com.lifepilot.tool;
 
 import com.lifepilot.domain.TodoStatus;
+import com.lifepilot.service.ExecutionLogService;
 import com.lifepilot.service.TodoService;
 import com.lifepilot.service.dto.CreateTodoCommand;
 import com.lifepilot.service.dto.TodoView;
@@ -16,6 +17,7 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -24,6 +26,9 @@ class TodoToolTest {
 
     @Mock
     private TodoService todoService;
+
+    @Mock
+    private ExecutionLogService executionLogService;
 
     @InjectMocks
     private TodoTool todoTool;
@@ -38,6 +43,7 @@ class TodoToolTest {
 
         ArgumentCaptor<CreateTodoCommand> captor = ArgumentCaptor.forClass(CreateTodoCommand.class);
         verify(todoService).create(captor.capture());
+        verify(executionLogService).recordSuccess(null, "todo.create", "Buy milk", todo.toString());
         assertThat(captor.getValue().title()).isEqualTo("Buy milk");
         assertThat(result).isEqualTo(ToolResult.success("todo created", todo));
     }
@@ -50,6 +56,7 @@ class TodoToolTest {
         ToolResult result = todoTool.listTodos();
 
         verify(todoService).list();
+        verify(executionLogService).recordSuccess(null, "todo.list", "", todos.toString());
         assertThat(result).isEqualTo(ToolResult.success("todos listed", todos));
     }
 
@@ -62,7 +69,20 @@ class TodoToolTest {
         ToolResult result = todoTool.completeTodo(todoId);
 
         verify(todoService).complete(todoId);
+        verify(executionLogService).recordSuccess(null, "todo.complete", todoId.toString(), completed.toString());
         assertThat(result).isEqualTo(ToolResult.success("todo completed", completed));
+    }
+
+    @Test
+    void recordsFailedTodoExecutionAndRethrows() {
+        UUID todoId = UUID.randomUUID();
+        when(todoService.complete(todoId)).thenThrow(new IllegalArgumentException("todo not found"));
+
+        assertThatThrownBy(() -> todoTool.completeTodo(todoId))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("todo not found");
+
+        verify(executionLogService).recordFailure(null, "todo.complete", todoId.toString(), "todo not found");
     }
 
     private static TodoView todo(String title, String description, TodoStatus status) {
