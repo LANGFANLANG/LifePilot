@@ -1,6 +1,8 @@
 package com.lifepilot;
 
 import com.lifepilot.agent.AiClient;
+import com.lifepilot.repository.ChatMessageRepository;
+import com.lifepilot.repository.ConversationRepository;
 import com.lifepilot.repository.NoteRepository;
 import com.lifepilot.repository.TodoRepository;
 import org.junit.jupiter.api.Test;
@@ -18,6 +20,12 @@ class LifePilotApplicationTests {
 
     @MockBean
     private AiClient aiClient;
+
+    @MockBean
+    private ConversationRepository conversationRepository;
+
+    @MockBean
+    private ChatMessageRepository chatMessageRepository;
 
     @MockBean
     private TodoRepository todoRepository;
