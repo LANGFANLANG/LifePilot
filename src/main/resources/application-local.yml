@@ -1,0 +1,23 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/lifepilot
+    username: lifepilot
+    password: lifepilot
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+  flyway:
+    enabled: true
+  data:
+    redis:
+      host: localhost
+      port: 6379
+  ai:
+    openai:
+      api-key: ${OPENAI_API_KEY:}
+
+lifepilot:
+  security:
+    auth-enabled: false
+    jwt-secret: ${LIFEPILOT_JWT_SECRET:change-me-change-me-change-me-change-me}
