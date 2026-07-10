@@ -1,7 +1,10 @@
 package com.lifepilot.agent;
 
+import com.lifepilot.config.AiToolConfig;
 import com.lifepilot.domain.ChatRole;
 import com.lifepilot.memory.dto.MessageView;
+import com.lifepilot.tool.NoteTool;
+import com.lifepilot.tool.TodoTool;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -35,6 +38,15 @@ class SpringAiClientTest {
     @Mock
     private ChatClient.CallResponseSpec responseSpec;
 
+    @Mock
+    private ChatClient.Builder chatClientBuilder;
+
+    @Mock
+    private TodoTool todoTool;
+
+    @Mock
+    private NoteTool noteTool;
+
     @Test
     void convertsMemoryRolesAndReturnsAiContent() {
         when(chatClient.prompt()).thenReturn(requestSpec);
@@ -56,6 +68,18 @@ class SpringAiClientTest {
                 .hasExactlyElementsOfTypes(SystemMessage.class, UserMessage.class, AssistantMessage.class,
                         ToolResponseMessage.class);
         assertThat(response).isEqualTo("Task created");
+    }
+
+    @Test
+    void configuresChatClientWithTodoAndNoteTools() {
+        when(chatClientBuilder.defaultTools(todoTool, noteTool)).thenReturn(chatClientBuilder);
+        when(chatClientBuilder.build()).thenReturn(chatClient);
+
+        ChatClient configuredClient = new AiToolConfig()
+                .lifePilotChatClient(chatClientBuilder, todoTool, noteTool);
+
+        assertThat(configuredClient).isSameAs(chatClient);
+        verify(chatClientBuilder).defaultTools(todoTool, noteTool);
     }
 
     private static MessageView message(ChatRole role, String content) {
