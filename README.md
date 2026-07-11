@@ -1,17 +1,17 @@
 # LifePilot MVP
 
-LifePilot is a Spring Boot MVP for personal task, note, and AI-assisted life planning workflows.
+LifePilot 是一个基于 Spring Boot 的个人生活管理 MVP，用于管理待办事项、笔记，并通过 AI Agent 辅助完成日常规划。
 
-## Prerequisites
+## 环境要求
 
 - Java 21
-- Gradle, or the included Gradle wrapper
-- Docker Desktop with the Linux engine running
-- DeepSeek API key for real chat calls
+- Gradle，或直接使用项目自带的 Gradle Wrapper
+- Docker Desktop，并确保 Linux engine 正在运行
+- DeepSeek API Key，用于真实 AI 对话调用
 
-## Local Configuration
+## 本地配置
 
-The local profile is enabled by default. Local API authentication is disabled by default through:
+项目默认启用 `local` profile。本地开发环境默认关闭 API 认证：
 
 ```yaml
 lifepilot:
@@ -19,13 +19,13 @@ lifepilot:
     auth-enabled: false
 ```
 
-Set your DeepSeek API key before starting the app:
+启动应用前，先设置 DeepSeek API Key：
 
 ```powershell
 $env:DEEPSEEK_V4 = "your-deepseek-api-key"
 ```
 
-The local profile uses DeepSeek through Spring AI's OpenAI-compatible client:
+本地 profile 通过 Spring AI 的 OpenAI 兼容客户端访问 DeepSeek：
 
 ```yaml
 spring:
@@ -38,80 +38,80 @@ spring:
           model: ${DEEPSEEK_MODEL:deepseek-chat}
 ```
 
-You can override the model or base URL when needed:
+如果需要切换模型或接口地址，可以覆盖下面的环境变量：
 
 ```powershell
 $env:DEEPSEEK_MODEL = "deepseek-chat"
 $env:DEEPSEEK_BASE_URL = "https://api.deepseek.com"
 ```
 
-For JWT-enabled local testing, provide a secret with at least 32 bytes and enable auth in configuration:
+如果需要在本地测试 JWT 认证，请提供至少 32 字节的密钥，并在配置中开启认证：
 
 ```powershell
 $env:LIFEPILOT_JWT_SECRET = "change-me-change-me-change-me-change-me"
 ```
 
-## Start Dependencies
+## 启动依赖
 
-Start Postgres with pgvector and Redis:
+启动带 pgvector 的 Postgres 和 Redis：
 
 ```powershell
 docker compose up -d postgres redis
 ```
 
-Check container status:
+查看容器状态：
 
 ```powershell
 docker compose ps
 ```
 
-## Start The App
+## 启动应用
 
-Run the Spring Boot app:
+运行 Spring Boot 应用：
 
 ```powershell
 .\gradlew.bat bootRun
 ```
 
-The API is available at:
+应用默认访问地址：
 
 ```text
 http://localhost:8080
 ```
 
-Health check:
+健康检查：
 
 ```powershell
 Invoke-RestMethod http://localhost:8080/actuator/health
 ```
 
-## Test Commands
+## 测试命令
 
-Run the automated test suite:
+运行自动化测试：
 
 ```powershell
 .\gradlew.bat test
 ```
 
-Generate Javadoc:
+生成 Javadoc：
 
 ```powershell
 .\gradlew.bat javadoc
 ```
 
-Run the local smoke test after the app is started:
+应用启动后运行本地烟测脚本：
 
 ```powershell
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\smoke-test.ps1
 ```
 
-To target a different host:
+如果需要指定其他服务地址：
 
 ```powershell
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\smoke-test.ps1 -BaseUrl "http://localhost:8080"
 ```
 
-## MVP Endpoints
+## MVP 接口
 
 - `GET /actuator/health`
 - `POST /api/todos`
@@ -121,12 +121,12 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\smoke-test.ps1
 - `GET /api/notes/{id}`
 - `POST /api/chat`
 
-## Troubleshooting
+## 常见问题
 
-If tests that use the local database fail with a connection error, confirm Docker Desktop is running and the Linux engine is available:
+如果数据库相关测试连接失败，请确认 Docker Desktop 已启动，并且 Linux engine 可用：
 
 ```powershell
 docker compose up -d postgres redis
 ```
 
-If PowerShell refuses to run the smoke test because of execution policy, use the `-ExecutionPolicy Bypass` command shown above. It applies only to that PowerShell process.
+如果 PowerShell 因执行策略拒绝运行烟测脚本，请使用上面的 `-ExecutionPolicy Bypass` 命令。该设置只对当前 PowerShell 进程生效，不会修改系统策略。
