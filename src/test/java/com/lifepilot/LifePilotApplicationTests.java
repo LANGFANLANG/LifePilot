@@ -7,8 +7,14 @@ import com.lifepilot.repository.ExecutionLogRepository;
 import com.lifepilot.repository.NoteRepository;
 import com.lifepilot.repository.TodoRepository;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.web.servlet.MockMvc;
+
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest(properties = {
         "spring.ai.openai.api-key=test-key",
@@ -17,7 +23,11 @@ import org.springframework.boot.test.mock.mockito.MockBean;
                 "org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration," +
                 "org.springframework.boot.autoconfigure.jdbc.DataSourceTransactionManagerAutoConfiguration"
 })
+@AutoConfigureMockMvc
 class LifePilotApplicationTests {
+
+    @Autowired
+    private MockMvc mockMvc;
 
     @MockBean
     private AiClient aiClient;
@@ -39,5 +49,11 @@ class LifePilotApplicationTests {
 
     @Test
     void contextLoads() {
+    }
+
+    @Test
+    void exposesActuatorHealthEndpoint() throws Exception {
+        mockMvc.perform(get("/actuator/health"))
+                .andExpect(status().isOk());
     }
 }
