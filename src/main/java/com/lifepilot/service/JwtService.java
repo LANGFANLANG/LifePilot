@@ -3,6 +3,7 @@ package com.lifepilot.service;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -27,6 +28,7 @@ public class JwtService {
      * @param secret JWT 签名密钥
      * @param tokenTtlSeconds 令牌有效期秒数
      */
+    @Autowired
     public JwtService(
             @Value("${lifepilot.security.jwt-secret}") String secret,
             @Value("${lifepilot.security.jwt-expiry-seconds:900}") long tokenTtlSeconds
