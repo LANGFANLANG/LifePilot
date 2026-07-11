@@ -7,7 +7,7 @@ LifePilot is a Spring Boot MVP for personal task, note, and AI-assisted life pla
 - Java 21
 - Gradle, or the included Gradle wrapper
 - Docker Desktop with the Linux engine running
-- OpenAI API key for real chat calls
+- DeepSeek API key for real chat calls
 
 ## Local Configuration
 
@@ -19,10 +19,30 @@ lifepilot:
     auth-enabled: false
 ```
 
-Set your OpenAI API key before starting the app:
+Set your DeepSeek API key before starting the app:
 
 ```powershell
-$env:OPENAI_API_KEY = "your-openai-api-key"
+$env:DEEPSEEK_V4 = "your-deepseek-api-key"
+```
+
+The local profile uses DeepSeek through Spring AI's OpenAI-compatible client:
+
+```yaml
+spring:
+  ai:
+    openai:
+      api-key: ${DEEPSEEK_V4:${OPENAI_API_KEY:}}
+      base-url: ${DEEPSEEK_BASE_URL:https://api.deepseek.com}
+      chat:
+        options:
+          model: ${DEEPSEEK_MODEL:deepseek-chat}
+```
+
+You can override the model or base URL when needed:
+
+```powershell
+$env:DEEPSEEK_MODEL = "deepseek-chat"
+$env:DEEPSEEK_BASE_URL = "https://api.deepseek.com"
 ```
 
 For JWT-enabled local testing, provide a secret with at least 32 bytes and enable auth in configuration:

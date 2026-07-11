@@ -15,7 +15,11 @@ spring:
       port: 6379
   ai:
     openai:
-      api-key: ${OPENAI_API_KEY:}
+      api-key: ${DEEPSEEK_V4:${OPENAI_API_KEY:}}
+      base-url: ${DEEPSEEK_BASE_URL:https://api.deepseek.com}
+      chat:
+        options:
+          model: ${DEEPSEEK_MODEL:deepseek-chat}
 
 lifepilot:
   security:
