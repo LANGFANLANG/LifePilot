@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="LifePilot 个人执行助手">
+    <title>LifePilot · 今日执行台</title>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+<main class="shell">
+    <header class="topbar">
+        <a class="brand" href="/index.html" aria-label="LifePilot 首页">
+            <span class="brand-mark">LP</span>
+            <span><strong>LifePilot</strong><small>个人执行助手</small></span>
+        </a>
+        <div class="status"><span class="status-dot"></span><span id="statusText">正在连接服务</span></div>
+    </header>
+
+    <section class="summary">
+        <div>
+            <p class="eyebrow" id="todayLabel"></p>
+            <h1>今天先把最重要的事推进一步。</h1>
+        </div>
+        <div class="metric-row">
+            <div><strong id="todoCount">0</strong><span>待处理</span></div>
+            <div><strong id="doneCount">0</strong><span>已完成</span></div>
+            <div><strong id="plannedCount">0</strong><span>已计划</span></div>
+        </div>
+    </section>
+
+    <section class="workspace">
+        <section class="panel chat-panel">
+            <div class="panel-heading">
+                <div><span class="panel-index">AI</span><h2>行动建议</h2></div>
+                <button class="text-button" id="clearChat" type="button">新对话</button>
+            </div>
+            <div class="chat-stream" id="chatStream" aria-live="polite">
+                <div class="message assistant">
+                    <span class="avatar">LP</span>
+                    <div><p>告诉我一个目标，我可以帮你拆成待办、安排时间，或者查看今天应该先做什么。</p></div>
+                </div>
+            </div>
+            <form class="composer" id="chatForm">
+                <textarea id="chatInput" rows="1" placeholder="例如：帮我安排今天的项目收尾" aria-label="发送给 LifePilot 的消息" required></textarea>
+                <button class="send-button" type="submit" aria-label="发送消息">发送</button>
+            </form>
+        </section>
+
+        <section class="panel task-panel">
+            <div class="panel-heading">
+                <div><span class="panel-index">TASK</span><h2>今日任务</h2></div>
+            </div>
+            <form class="todo-form" id="todoForm">
+                <input id="todoTitle" maxlength="200" placeholder="要推进的事情" aria-label="任务标题" required>
+                <input id="todoCategory" maxlength="80" placeholder="分类" aria-label="任务分类">
+                <select id="todoPriority" aria-label="任务优先级">
+                    <option value="MEDIUM">中优先级</option>
+                    <option value="HIGH">高优先级</option>
+                    <option value="LOW">低优先级</option>
+                </select>
+                <input id="todoEstimated" type="number" min="0" step="5" placeholder="分钟" aria-label="预计耗时">
+                <label>计划开始<input id="todoPlannedStart" type="datetime-local"></label>
+                <label>提醒时间<input id="todoReminder" type="datetime-local"></label>
+                <textarea id="todoDescription" rows="2" placeholder="补充说明"></textarea>
+                <button class="primary-button" type="submit">添加任务</button>
+            </form>
+            <div class="item-list" id="todoList"><div class="skeleton"></div><div class="skeleton short"></div></div>
+        </section>
+
+        <section class="panel note-panel">
+            <div class="panel-heading">
+                <div><span class="panel-index">NOTE</span><h2>灵感便笺</h2></div>
+                <button class="text-button" id="openNote" type="button">写一条</button>
+            </div>
+            <div class="note-grid" id="noteList"><div class="skeleton card"></div></div>
+        </section>
+    </section>
+</main>
+
+<dialog id="editTodoDialog">
+    <form class="dialog-form" id="editTodoForm">
+        <div class="dialog-heading">
+            <div><span class="panel-index">EDIT</span><h2>编辑任务</h2></div>
+            <button id="closeEditTodo" type="button" aria-label="关闭">×</button>
+        </div>
+        <input id="editTodoId" type="hidden">
+        <label>标题<input id="editTodoTitle" maxlength="200" required></label>
+        <label>分类<input id="editTodoCategory" maxlength="80"></label>
+        <label>优先级
+            <select id="editTodoPriority">
+                <option value="MEDIUM">中优先级</option>
+                <option value="HIGH">高优先级</option>
+                <option value="LOW">低优先级</option>
+            </select>
+        </label>
+        <label>预计耗时<input id="editTodoEstimated" type="number" min="0" step="5"></label>
+        <label>计划开始<input id="editTodoPlannedStart" type="datetime-local"></label>
+        <label>提醒时间<input id="editTodoReminder" type="datetime-local"></label>
+        <label>说明<textarea id="editTodoDescription" rows="4"></textarea></label>
+        <button class="primary-button" type="submit">保存修改</button>
+    </form>
+</dialog>
+
+<dialog id="noteDialog">
+    <form class="dialog-form" id="noteForm">
+        <div class="dialog-heading">
+            <div><span class="panel-index">NEW</span><h2>记录便笺</h2></div>
+            <button id="closeNote" type="button" aria-label="关闭">×</button>
+        </div>
+        <label>标题<input id="noteTitle" maxlength="200" required></label>
+        <label>内容<textarea id="noteContent" rows="7" required></textarea></label>
+        <button class="primary-button" type="submit">保存便笺</button>
+    </form>
+</dialog>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script src="/app.js" defer></script>
+</body>
+</html>
