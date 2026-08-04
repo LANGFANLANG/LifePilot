@@ -4,6 +4,7 @@ import com.lifepilot.domain.Todo;
 import com.lifepilot.repository.TodoRepository;
 import com.lifepilot.service.dto.CreateTodoCommand;
 import com.lifepilot.service.dto.TodoView;
+import com.lifepilot.service.dto.UpdateTodoCommand;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,7 +37,18 @@ public class TodoService {
      */
     @Transactional
     public TodoView create(CreateTodoCommand command) {
-        Todo todo = Todo.create(command.title(), command.description(), command.dueAt());
+        Todo todo = Todo.create(
+                command.title(),
+                command.description(),
+                command.dueAt(),
+                command.priority(),
+                command.category(),
+                command.estimatedMinutes(),
+                command.plannedStartAt(),
+                command.reminderAt(),
+                command.parentTodoId(),
+                command.source()
+        );
         return TodoView.from(todoRepository.save(todo));
     }
 
@@ -66,5 +78,32 @@ public class TodoService {
                 .orElseThrow(() -> new IllegalArgumentException("todo not found"));
         todo.complete();
         return TodoView.from(todoRepository.save(todo));
+    }
+
+    @Transactional
+    public TodoView update(UUID id, UpdateTodoCommand command) {
+        Todo todo = todoRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("todo not found"));
+        todo.update(
+                command.title(),
+                command.description(),
+                command.dueAt(),
+                command.priority(),
+                command.category(),
+                command.estimatedMinutes(),
+                command.plannedStartAt(),
+                command.reminderAt(),
+                command.parentTodoId(),
+                command.source()
+        );
+        return TodoView.from(todoRepository.save(todo));
+    }
+
+    @Transactional
+    public void delete(UUID id) {
+        if (!todoRepository.existsById(id)) {
+            throw new IllegalArgumentException("todo not found");
+        }
+        todoRepository.deleteById(id);
     }
 }

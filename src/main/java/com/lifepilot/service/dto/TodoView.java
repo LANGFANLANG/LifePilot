@@ -1,6 +1,7 @@
 package com.lifepilot.service.dto;
 
 import com.lifepilot.domain.Todo;
+import com.lifepilot.domain.TodoPriority;
 import com.lifepilot.domain.TodoStatus;
 
 import java.time.OffsetDateTime;
@@ -23,6 +24,15 @@ public record TodoView(
         String description,
         TodoStatus status,
         OffsetDateTime dueAt,
+        TodoPriority priority,
+        String category,
+        Integer estimatedMinutes,
+        OffsetDateTime plannedStartAt,
+        OffsetDateTime reminderAt,
+        OffsetDateTime completedAt,
+        UUID parentTodoId,
+        String source,
+        int postponementCount,
         OffsetDateTime createdAt,
         OffsetDateTime updatedAt
 ) {
@@ -40,6 +50,15 @@ public record TodoView(
                 todo.getDescription(),
                 todo.getStatus(),
                 todo.getDueAt(),
+                todo.getPriority(),
+                todo.getCategory(),
+                todo.getEstimatedMinutes(),
+                todo.getPlannedStartAt(),
+                todo.getReminderAt(),
+                todo.getCompletedAt(),
+                todo.getParentTodoId(),
+                todo.getSource(),
+                todo.getPostponementCount(),
                 todo.getCreatedAt(),
                 todo.getUpdatedAt()
         );

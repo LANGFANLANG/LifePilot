@@ -11,3 +11,7 @@ controller、service、agent、tool、repository、domain、config。
 - 全局异常处理
 - 单元测试覆盖核心 Service
 - Git Commit：feat/fix/refactor/docs/test/chore
+
+## 注释要求
+- 要有标准的javadoc注释,后端还要都接口文档
+

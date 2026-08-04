@@ -3,6 +3,7 @@ package com.lifepilot.agent;
 import com.lifepilot.config.AiToolConfig;
 import com.lifepilot.domain.ChatRole;
 import com.lifepilot.memory.dto.MessageView;
+import com.lifepilot.tool.DateTimeTool;
 import com.lifepilot.tool.NoteTool;
 import com.lifepilot.tool.TodoTool;
 import org.junit.jupiter.api.Test;
@@ -47,6 +48,9 @@ class SpringAiClientTest {
     @Mock
     private NoteTool noteTool;
 
+    @Mock
+    private DateTimeTool dateTimeTool;
+
     @Test
     void convertsMemoryRolesAndReturnsAiContent() {
         when(chatClient.prompt()).thenReturn(requestSpec);
@@ -71,15 +75,15 @@ class SpringAiClientTest {
     }
 
     @Test
-    void configuresChatClientWithTodoAndNoteTools() {
-        when(chatClientBuilder.defaultTools(todoTool, noteTool)).thenReturn(chatClientBuilder);
+    void configuresChatClientWithTodoNoteAndDateTimeTools() {
+        when(chatClientBuilder.defaultTools(todoTool, noteTool, dateTimeTool)).thenReturn(chatClientBuilder);
         when(chatClientBuilder.build()).thenReturn(chatClient);
 
         ChatClient configuredClient = new AiToolConfig()
-                .lifePilotChatClient(chatClientBuilder, todoTool, noteTool);
+                .lifePilotChatClient(chatClientBuilder, todoTool, noteTool, dateTimeTool);
 
         assertThat(configuredClient).isSameAs(chatClient);
-        verify(chatClientBuilder).defaultTools(todoTool, noteTool);
+        verify(chatClientBuilder).defaultTools(todoTool, noteTool, dateTimeTool);
     }
 
     private static MessageView message(ChatRole role, String content) {

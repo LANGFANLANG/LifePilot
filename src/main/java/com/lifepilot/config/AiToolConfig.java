@@ -1,10 +1,13 @@
 package com.lifepilot.config;
 
 import com.lifepilot.tool.NoteTool;
+import com.lifepilot.tool.DateTimeTool;
 import com.lifepilot.tool.TodoTool;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
+import java.time.Clock;
 
 /**
  * 配置 Spring AI 对话客户端可用的业务工具。
@@ -30,8 +33,19 @@ public class AiToolConfig {
     public ChatClient lifePilotChatClient(
             ChatClient.Builder chatClientBuilder,
             TodoTool todoTool,
-            NoteTool noteTool
+            NoteTool noteTool,
+            DateTimeTool dateTimeTool
     ) {
-        return chatClientBuilder.defaultTools(todoTool, noteTool).build();
+        return chatClientBuilder.defaultTools(todoTool, noteTool, dateTimeTool).build();
+    }
+
+    /**
+     * 提供使用系统默认时区的时钟，便于日期工具读取当前时间。
+     *
+     * @return 系统时钟
+     */
+    @Bean
+    public Clock systemClock() {
+        return Clock.systemDefaultZone();
     }
 }

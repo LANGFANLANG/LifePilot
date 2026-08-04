@@ -1,10 +1,12 @@
 package com.lifepilot.tool;
 
 import com.lifepilot.domain.TodoStatus;
+import com.lifepilot.domain.TodoPriority;
 import com.lifepilot.service.ExecutionLogService;
 import com.lifepilot.service.TodoService;
 import com.lifepilot.service.dto.CreateTodoCommand;
 import com.lifepilot.service.dto.TodoView;
+import com.lifepilot.service.dto.UpdateTodoCommand;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -36,15 +38,28 @@ class TodoToolTest {
     @Test
     void createsTodoThroughService() {
         TodoView todo = todo("Buy milk", "2 bottles", TodoStatus.PENDING);
-        when(todoService.create(new CreateTodoCommand("Buy milk", "2 bottles", null)))
+        when(todoService.create(new CreateTodoCommand(
+                "Buy milk",
+                "2 bottles",
+                null,
+                TodoPriority.HIGH,
+                "life",
+                10,
+                null,
+                null,
+                null,
+                "ai"
+        )))
                 .thenReturn(todo);
 
-        ToolResult result = todoTool.createTodo("Buy milk", "2 bottles", null);
+        ToolResult result = todoTool.createTodo("Buy milk", "2 bottles", null, TodoPriority.HIGH, "life", 10, null, null);
 
         ArgumentCaptor<CreateTodoCommand> captor = ArgumentCaptor.forClass(CreateTodoCommand.class);
         verify(todoService).create(captor.capture());
         verify(executionLogService).recordSuccess(null, "todo.create", "Buy milk", todo.toString());
         assertThat(captor.getValue().title()).isEqualTo("Buy milk");
+        assertThat(captor.getValue().priority()).isEqualTo(TodoPriority.HIGH);
+        assertThat(captor.getValue().source()).isEqualTo("ai");
         assertThat(result).isEqualTo(ToolResult.success("todo created", todo));
     }
 
@@ -85,8 +100,71 @@ class TodoToolTest {
         verify(executionLogService).recordFailure(null, "todo.complete", todoId.toString(), "todo not found");
     }
 
+    @Test
+    void updatesTodoThroughService() {
+        UUID todoId = UUID.randomUUID();
+        TodoView updated = todo("Buy coffee", "beans", TodoStatus.PENDING);
+        when(todoService.update(todoId, new UpdateTodoCommand(
+                "Buy coffee",
+                "beans",
+                null,
+                TodoPriority.HIGH,
+                "life",
+                15,
+                null,
+                null,
+                null,
+                "ai"
+        ))).thenReturn(updated);
+
+        ToolResult result = todoTool.updateTodo(todoId, "Buy coffee", "beans", null, TodoPriority.HIGH, "life", 15, null, null);
+
+        verify(todoService).update(todoId, new UpdateTodoCommand(
+                "Buy coffee",
+                "beans",
+                null,
+                TodoPriority.HIGH,
+                "life",
+                15,
+                null,
+                null,
+                null,
+                "ai"
+        ));
+        verify(executionLogService).recordSuccess(null, "todo.update", todoId + ":Buy coffee", updated.toString());
+        assertThat(result).isEqualTo(ToolResult.success("todo updated", updated));
+    }
+
+    @Test
+    void deletesTodoThroughService() {
+        UUID todoId = UUID.randomUUID();
+
+        ToolResult result = todoTool.deleteTodo(todoId);
+
+        verify(todoService).delete(todoId);
+        verify(executionLogService).recordSuccess(null, "todo.delete", todoId.toString(), "deleted");
+        assertThat(result).isEqualTo(ToolResult.success("todo deleted", todoId));
+    }
+
     private static TodoView todo(String title, String description, TodoStatus status) {
         OffsetDateTime now = OffsetDateTime.parse("2026-07-10T10:00:00+08:00");
-        return new TodoView(UUID.randomUUID(), title, description, status, null, now, now);
+        return new TodoView(
+                UUID.randomUUID(),
+                title,
+                description,
+                status,
+                null,
+                TodoPriority.MEDIUM,
+                "life",
+                10,
+                null,
+                null,
+                null,
+                null,
+                "manual",
+                0,
+                now,
+                now
+        );
     }
 }
