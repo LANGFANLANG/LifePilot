@@ -20,6 +20,8 @@ const blank = () => ({
   category: '',
   estimatedMinutes: '',
   dueAt: '',
+  plannedStartAt: '',
+  reminderAt: '',
 })
 
 const form = reactive(blank())
@@ -35,6 +37,8 @@ watch(props.editing, (value) => {
       category: value.category || '',
       estimatedMinutes: value.estimatedMinutes ?? '',
       dueAt: toLocalDatetimeInput(value.dueAt),
+      plannedStartAt: toLocalDatetimeInput(value.plannedStartAt),
+      reminderAt: toLocalDatetimeInput(value.reminderAt),
     })
   }
 })
@@ -62,8 +66,8 @@ async function submit() {
     category: form.category.trim() || null,
     estimatedMinutes: form.estimatedMinutes === '' ? null : Number(form.estimatedMinutes),
     dueAt: fromDatetimeInput(form.dueAt),
-    plannedStartAt: null,
-    reminderAt: null,
+    plannedStartAt: fromDatetimeInput(form.plannedStartAt),
+    reminderAt: fromDatetimeInput(form.reminderAt),
     parentTodoId: null,
     source: 'web',
   }
@@ -130,6 +134,16 @@ async function submit() {
         <div class="field">
           <label for="todo-due">截止时间</label>
           <input id="todo-due" type="datetime-local" v-model="form.dueAt" />
+        </div>
+
+        <div class="field">
+          <label for="todo-planned-start">计划开始</label>
+          <input id="todo-planned-start" type="datetime-local" v-model="form.plannedStartAt" />
+        </div>
+
+        <div class="field">
+          <label for="todo-reminder">提醒时间</label>
+          <input id="todo-reminder" type="datetime-local" v-model="form.reminderAt" />
         </div>
 
         <div class="field">

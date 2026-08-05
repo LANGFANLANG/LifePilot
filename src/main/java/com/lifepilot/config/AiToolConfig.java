@@ -2,6 +2,7 @@ package com.lifepilot.config;
 
 import com.lifepilot.tool.NoteTool;
 import com.lifepilot.tool.DateTimeTool;
+import com.lifepilot.tool.PlanPreviewTool;
 import com.lifepilot.tool.TodoTool;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.context.annotation.Bean;
@@ -34,9 +35,10 @@ public class AiToolConfig {
             ChatClient.Builder chatClientBuilder,
             TodoTool todoTool,
             NoteTool noteTool,
-            DateTimeTool dateTimeTool
+            DateTimeTool dateTimeTool,
+            PlanPreviewTool planPreviewTool
     ) {
-        return chatClientBuilder.defaultTools(todoTool, noteTool, dateTimeTool).build();
+        return chatClientBuilder.defaultTools(todoTool, noteTool, dateTimeTool, planPreviewTool).build();
     }
 
     /**

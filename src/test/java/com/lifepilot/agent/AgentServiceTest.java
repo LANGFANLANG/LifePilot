@@ -34,6 +34,9 @@ class AgentServiceTest {
     @Mock
     private ExecutionLogService executionLogService;
 
+    @Mock
+    private PlanPreviewActionContext planPreviewActionContext;
+
     @InjectMocks
     private AgentService agentService;
 
@@ -46,6 +49,7 @@ class AgentServiceTest {
                 .thenReturn(userMessage);
         when(chatMemoryService.loadRecentMessages(conversationId)).thenReturn(List.of(userMessage));
         when(aiClient.chat(List.of(userMessage))).thenReturn("Task created");
+        when(planPreviewActionContext.currentActions()).thenReturn(List.of());
         when(chatMemoryService.appendMessage(conversationId, ChatRole.ASSISTANT, "Task created"))
                 .thenReturn(assistantMessage);
 
@@ -57,6 +61,7 @@ class AgentServiceTest {
         verify(executionLogService).recordSuccess(conversationId, "agent.chat", "Create a task", "Task created");
         assertThat(response.conversationId()).isEqualTo(conversationId);
         assertThat(response.content()).isEqualTo("Task created");
+        assertThat(response.actions()).isEmpty();
     }
 
     @Test
@@ -74,6 +79,7 @@ class AgentServiceTest {
                 .thenReturn(userMessage);
         when(chatMemoryService.loadRecentMessages(conversationId)).thenReturn(List.of(userMessage));
         when(aiClient.chat(List.of(userMessage))).thenReturn("Task created");
+        when(planPreviewActionContext.currentActions()).thenReturn(List.of());
         when(chatMemoryService.appendMessage(conversationId, ChatRole.ASSISTANT, "Task created"))
                 .thenReturn(messageView(conversationId, ChatRole.ASSISTANT, "Task created"));
 

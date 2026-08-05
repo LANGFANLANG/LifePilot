@@ -2,6 +2,7 @@ package com.lifepilot.agent;
 
 import com.lifepilot.agent.dto.AgentRequest;
 import com.lifepilot.agent.dto.AgentResponse;
+import com.lifepilot.agent.dto.AgentAction;
 import com.lifepilot.domain.ChatRole;
 import com.lifepilot.memory.ChatMemoryService;
 import com.lifepilot.memory.dto.ConversationView;
@@ -21,6 +22,7 @@ public class AgentService {
     private final ChatMemoryService chatMemoryService;
     private final AiClient aiClient;
     private final ExecutionLogService executionLogService;
+    private final PlanPreviewActionContext planPreviewActionContext;
 
     /**
      * 创建 Agent 对话服务。
@@ -32,11 +34,13 @@ public class AgentService {
     public AgentService(
             ChatMemoryService chatMemoryService,
             AiClient aiClient,
-            ExecutionLogService executionLogService
+            ExecutionLogService executionLogService,
+            PlanPreviewActionContext planPreviewActionContext
     ) {
         this.chatMemoryService = chatMemoryService;
         this.aiClient = aiClient;
         this.executionLogService = executionLogService;
+        this.planPreviewActionContext = planPreviewActionContext;
     }
 
     /**
@@ -47,17 +51,21 @@ public class AgentService {
      */
     public AgentResponse chat(AgentRequest request) {
         UUID conversationId = null;
+        planPreviewActionContext.begin();
         try {
             conversationId = resolveConversationId(request);
             chatMemoryService.appendMessage(conversationId, ChatRole.USER, request.message());
             List<MessageView> messages = chatMemoryService.loadRecentMessages(conversationId);
             String response = aiClient.chat(messages);
+            List<AgentAction> actions = planPreviewActionContext.currentActions();
             chatMemoryService.appendMessage(conversationId, ChatRole.ASSISTANT, response);
             executionLogService.recordSuccess(conversationId, "agent.chat", request.message(), response);
-            return new AgentResponse(conversationId, response);
+            return new AgentResponse(conversationId, response, actions);
         } catch (RuntimeException ex) {
             executionLogService.recordFailure(conversationId, "agent.chat", request.message(), ex.getMessage());
             throw ex;
+        } finally {
+            planPreviewActionContext.clear();
         }
     }
 

@@ -10,9 +10,11 @@ const route = useRoute()
 const isBare = computed(() => !!route.meta.public)
 
 const navItems = [
-  { to: '/', label: '待办', index: '01' },
-  { to: '/notes', label: '笔记', index: '02' },
-  { to: '/chat', label: 'AI 助手', index: '03' },
+  { to: '/', label: '今日', index: '01' },
+  { to: '/todos', label: '待办', index: '02' },
+  { to: '/notes', label: '笔记', index: '03' },
+  { to: '/review', label: '复盘', index: '04' },
+  { to: '/chat', label: 'AI 助手', index: '05' },
 ]
 
 const dateLine = computed(() => {

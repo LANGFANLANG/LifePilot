@@ -1,9 +1,13 @@
 <script setup>
 import { computed, nextTick, ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { sendChatMessage } from '../api/chat'
+import { confirmPlanPreview, getPlanPreview, rejectPlanPreview } from '../api/planPreviews'
 import { greeting } from '../utils/format'
 
+const router = useRouter()
 const messages = ref([])
+const conversationId = ref(null)
 const input = ref('')
 const busy = ref(false)
 const error = ref('')
@@ -27,17 +31,52 @@ async function send() {
   scrollToBottom()
 
   try {
-    const lastUser = messages.value[messages.value.length - 1]
-    const conversationId = lastUser.conversationId ?? null
-    const reply = await sendChatMessage(conversationId, text)
-    messages.value.push({ role: 'assistant', content: reply.content })
-    lastUser.conversationId = reply.conversationId
+    const reply = await sendChatMessage(conversationId.value, text)
+    conversationId.value = reply.conversationId
+    const plans = await loadPlanActions(reply.actions || [])
+    messages.value.push({ role: 'assistant', content: reply.content, plans })
   } catch (e) {
     error.value = e.message
     messages.value.push({ role: 'assistant', content: `抱歉，出错了：${e.message}` })
   } finally {
     busy.value = false
     scrollToBottom()
+  }
+}
+
+async function loadPlanActions(actions) {
+  const planActions = actions.filter((action) => action.type === 'PLAN_PREVIEW' && action.resourceId)
+  return Promise.all(planActions.map(async (action) => ({
+    action,
+    preview: await getPlanPreview(action.resourceId),
+    status: 'READY',
+    error: '',
+  })))
+}
+
+async function confirmPlan(plan) {
+  plan.status = 'SAVING'
+  plan.error = ''
+  try {
+    const todos = await confirmPlanPreview(plan.preview.id)
+    plan.status = 'CONFIRMED'
+    plan.createdCount = todos.length
+    await router.push('/')
+  } catch (e) {
+    plan.status = 'READY'
+    plan.error = e.message
+  }
+}
+
+async function rejectPlan(plan) {
+  plan.status = 'SAVING'
+  plan.error = ''
+  try {
+    plan.preview = await rejectPlanPreview(plan.preview.id)
+    plan.status = 'REJECTED'
+  } catch (e) {
+    plan.status = 'READY'
+    plan.error = e.message
   }
 }
 
@@ -63,7 +102,37 @@ function onKeydown(e) {
 
       <div v-for="(msg, i) in messages" :key="i" class="msg" :class="msg.role">
         <div class="avatar">{{ msg.role === 'user' ? '我' : 'P' }}</div>
-        <div class="bubble">{{ msg.content }}</div>
+        <div class="bubble">
+          <div>{{ msg.content }}</div>
+
+          <div v-for="plan in msg.plans || []" :key="plan.preview.id" class="plan-preview">
+            <div class="plan-preview-head">
+              <div>
+                <div class="plan-preview-title">{{ plan.preview.goal }}</div>
+                <div class="plan-preview-meta">{{ plan.preview.tasks.length }} 个任务 · {{ plan.preview.status }}</div>
+              </div>
+            </div>
+
+            <div class="plan-preview-tasks">
+              <div v-for="task in plan.preview.tasks" :key="task.id" class="plan-preview-task">
+                <span>{{ task.title }}</span>
+                <small>
+                  {{ task.priority || 'MEDIUM' }}
+                  <template v-if="task.estimatedMinutes"> · {{ task.estimatedMinutes }} 分钟</template>
+                </small>
+              </div>
+            </div>
+
+            <div v-if="plan.error" class="form-error">{{ plan.error }}</div>
+
+            <div class="plan-preview-actions">
+              <button class="btn btn-ghost" :disabled="plan.status !== 'READY'" @click="rejectPlan(plan)">拒绝</button>
+              <button class="btn btn-primary" :disabled="plan.status !== 'READY'" @click="confirmPlan(plan)">
+                {{ plan.status === 'CONFIRMED' ? `已创建 ${plan.createdCount || 0} 个待办` : plan.status === 'SAVING' ? '处理中…' : '确认生成待办' }}
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div v-if="busy" class="msg assistant">

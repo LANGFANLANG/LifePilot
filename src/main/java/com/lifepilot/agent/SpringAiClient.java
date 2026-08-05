@@ -18,6 +18,15 @@ import java.util.List;
 @Component
 public class SpringAiClient implements AiClient {
 
+    static final String SYSTEM_PROMPT = """
+            你是 LifePilot，一个个人执行规划助手。
+            当用户给出目标时，如果缺少截止时间、范围、优先级或可用时间，请先追问。
+            当目标需要拆成多个任务时，先创建计划草案，等待用户确认。
+            未经用户明确确认，不要批量创建、删除或修改待办。
+            调用工具时使用 ISO-8601 日期时间。
+            任务标题要具体、简短，预计耗时要现实。
+            """;
+
     private final ChatClient chatClient;
 
     /**
@@ -37,9 +46,11 @@ public class SpringAiClient implements AiClient {
      */
     @Override
     public String chat(List<MessageView> messages) {
-        List<Message> promptMessages = messages.stream()
+        List<Message> promptMessages = new java.util.ArrayList<>();
+        promptMessages.add(new SystemMessage(SYSTEM_PROMPT));
+        promptMessages.addAll(messages.stream()
                 .map(this::toSpringAiMessage)
-                .toList();
+                .toList());
         return chatClient.prompt()
                 .messages(promptMessages)
                 .call()

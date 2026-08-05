@@ -27,7 +27,9 @@ const priorityLabels = { HIGH: '高优先级', MEDIUM: '中优先级', LOW: '低
       <div class="todo-meta">
         <span v-if="todo.priority" class="chip" :class="`priority-${todo.priority}`">{{ priorityLabels[todo.priority] }}</span>
         <span v-if="todo.category" class="chip">{{ todo.category }}</span>
-        <span v-if="todo.dueAt" class="chip">{{ formatDateTime(todo.dueAt) }}</span>
+        <span v-if="todo.dueAt" class="chip">截止 {{ formatDateTime(todo.dueAt) }}</span>
+        <span v-if="todo.plannedStartAt" class="chip">计划 {{ formatDateTime(todo.plannedStartAt) }}</span>
+        <span v-if="todo.reminderAt" class="chip">提醒 {{ formatDateTime(todo.reminderAt) }}</span>
         <span v-if="todo.estimatedMinutes" class="chip">{{ todo.estimatedMinutes }} 分钟</span>
       </div>
     </div>

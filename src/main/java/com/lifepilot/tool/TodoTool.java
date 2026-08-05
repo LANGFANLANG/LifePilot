@@ -6,11 +6,11 @@ import com.lifepilot.service.TodoService;
 import com.lifepilot.service.dto.CreateTodoCommand;
 import com.lifepilot.service.dto.TodoView;
 import com.lifepilot.service.dto.UpdateTodoCommand;
+import com.lifepilot.util.TimeParser;
 import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.ai.tool.annotation.ToolParam;
 import org.springframework.stereotype.Component;
 
-import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -29,23 +29,23 @@ public class TodoTool {
     public ToolResult createTodo(
             @ToolParam(description = "Todo title") String title,
             @ToolParam(required = false, description = "Todo details") String description,
-            @ToolParam(required = false, description = "Due date/time in ISO-8601 format") OffsetDateTime dueAt,
+            @ToolParam(required = false, description = "Due date/time in ISO-8601 format") String dueAt,
             @ToolParam(required = false, description = "Priority: LOW, MEDIUM, or HIGH") TodoPriority priority,
             @ToolParam(required = false, description = "Category, such as work, learning, or life") String category,
             @ToolParam(required = false, description = "Estimated duration in minutes") Integer estimatedMinutes,
-            @ToolParam(required = false, description = "Planned start date/time in ISO-8601 format") OffsetDateTime plannedStartAt,
-            @ToolParam(required = false, description = "Reminder date/time in ISO-8601 format") OffsetDateTime reminderAt
+            @ToolParam(required = false, description = "Planned start date/time in ISO-8601 format") String plannedStartAt,
+            @ToolParam(required = false, description = "Reminder date/time in ISO-8601 format") String reminderAt
     ) {
         try {
             TodoView todo = todoService.create(new CreateTodoCommand(
                     title,
                     description,
-                    dueAt,
+                    TimeParser.parseOffsetDateTime(dueAt),
                     priority,
                     category,
                     estimatedMinutes,
-                    plannedStartAt,
-                    reminderAt,
+                    TimeParser.parseOffsetDateTime(plannedStartAt),
+                    TimeParser.parseOffsetDateTime(reminderAt),
                     null,
                     "ai"
             ));
@@ -87,24 +87,24 @@ public class TodoTool {
             @ToolParam(description = "Todo ID") UUID id,
             @ToolParam(description = "Todo title") String title,
             @ToolParam(required = false, description = "Todo details") String description,
-            @ToolParam(required = false, description = "Due date/time in ISO-8601 format") OffsetDateTime dueAt,
+            @ToolParam(required = false, description = "Due date/time in ISO-8601 format") String dueAt,
             @ToolParam(required = false, description = "Priority: LOW, MEDIUM, or HIGH") TodoPriority priority,
             @ToolParam(required = false, description = "Category") String category,
             @ToolParam(required = false, description = "Estimated duration in minutes") Integer estimatedMinutes,
-            @ToolParam(required = false, description = "Planned start date/time in ISO-8601 format") OffsetDateTime plannedStartAt,
-            @ToolParam(required = false, description = "Reminder date/time in ISO-8601 format") OffsetDateTime reminderAt
+            @ToolParam(required = false, description = "Planned start date/time in ISO-8601 format") String plannedStartAt,
+            @ToolParam(required = false, description = "Reminder date/time in ISO-8601 format") String reminderAt
     ) {
         String input = id + ":" + title;
         try {
             TodoView todo = todoService.update(id, new UpdateTodoCommand(
                     title,
                     description,
-                    dueAt,
+                    TimeParser.parseOffsetDateTime(dueAt),
                     priority,
                     category,
                     estimatedMinutes,
-                    plannedStartAt,
-                    reminderAt,
+                    TimeParser.parseOffsetDateTime(plannedStartAt),
+                    TimeParser.parseOffsetDateTime(reminderAt),
                     null,
                     "ai"
             ));
