@@ -9,11 +9,53 @@ services:
       - "5432:5432"
     volumes:
       - lifepilot-postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U lifepilot -d lifepilot"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
 
   redis:
     image: redis:7-alpine
     ports:
       - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/lifepilot
+      SPRING_DATASOURCE_USERNAME: lifepilot
+      SPRING_DATASOURCE_PASSWORD: lifepilot
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
+      SPRING_AI_OPENAI_API_KEY: ${DEEPSEEK_V4:-}
+      SPRING_AI_OPENAI_BASE_URL: ${DEEPSEEK_BASE_URL:-https://api.deepseek.com}
+      SPRING_AI_OPENAI_CHAT_OPTIONS_MODEL: ${DEEPSEEK_MODEL:-deepseek-chat}
+      LIFEPILOT_SECURITY_AUTH_ENABLED: ${AUTH_ENABLED:-false}
+      LIFEPILOT_SECURITY_JWT_SECRET: ${LIFEPILOT_JWT_SECRET:-change-me-change-me-change-me-change-me}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    depends_on:
+      - backend
+    ports:
+      - "3000:80"
 
 volumes:
   lifepilot-postgres:
