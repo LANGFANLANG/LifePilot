@@ -6,7 +6,7 @@ services:
       POSTGRES_USER: lifepilot
       POSTGRES_PASSWORD: lifepilot
     ports:
-      - "5432:5432"
+      - "15432:5432"
     volumes:
       - lifepilot-postgres:/var/lib/postgresql/data
     healthcheck:
@@ -18,7 +18,7 @@ services:
   redis:
     image: redis:7-alpine
     ports:
-      - "6379:6379"
+      - "6380:6379"
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
@@ -46,7 +46,7 @@ services:
       redis:
         condition: service_healthy
     ports:
-      - "8080:8080"
+      - "8081:8081"
 
   frontend:
     build:

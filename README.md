@@ -76,13 +76,13 @@ docker compose ps
 应用默认访问地址：
 
 ```text
-http://localhost:8080
+http://localhost:8081
 ```
 
 健康检查：
 
 ```powershell
-Invoke-RestMethod http://localhost:8080/actuator/health
+Invoke-RestMethod http://localhost:8081/actuator/health
 ```
 
 ## 测试命令
@@ -108,7 +108,7 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\smoke-test.ps1
 如果需要指定其他服务地址：
 
 ```powershell
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\smoke-test.ps1 -BaseUrl "http://localhost:8080"
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\smoke-test.ps1 -BaseUrl "http://localhost:8081"
 ```
 
 ## MVP 接口

@@ -28,6 +28,10 @@ dependencies {
     implementation 'org.flywaydb:flyway-core'
     implementation 'org.flywaydb:flyway-database-postgresql'
     implementation 'io.jsonwebtoken:jjwt-api:0.12.6'
+    implementation 'cn.dev33:sa-token-spring-boot3-starter:1.39.0'
+    implementation 'cn.dev33:sa-token-redis-jackson:1.39.0'
+    implementation 'com.github.whvcse:easy-captcha:1.6.2'
+    implementation 'org.openjdk.nashorn:nashorn-core:15.4'
 
     runtimeOnly 'org.postgresql:postgresql'
     runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.6'

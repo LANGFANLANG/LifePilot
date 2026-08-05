@@ -6,6 +6,7 @@ import com.lifepilot.repository.ConversationRepository;
 import com.lifepilot.repository.ExecutionLogRepository;
 import com.lifepilot.repository.NoteRepository;
 import com.lifepilot.repository.TodoRepository;
+import com.lifepilot.repository.UserAccountRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -46,6 +47,9 @@ class LifePilotApplicationTests {
 
     @MockBean
     private ExecutionLogRepository executionLogRepository;
+
+    @MockBean
+    private UserAccountRepository userAccountRepository;
 
     @Test
     void contextLoads() {

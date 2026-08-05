@@ -13,7 +13,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @TestPropertySource(properties = {
-        "spring.datasource.url=jdbc:postgresql://localhost:5432/lifepilot",
+        "spring.datasource.url=jdbc:postgresql://localhost:15432/lifepilot",
         "spring.datasource.username=lifepilot",
         "spring.datasource.password=lifepilot",
         "spring.flyway.enabled=true"

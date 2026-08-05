@@ -11,7 +11,7 @@ Configuration and database migrations are in `src/main/resources`. Add schema ch
 On Windows PowerShell, use the checked-in Gradle Wrapper:
 
 - `docker compose up -d postgres redis` starts local PostgreSQL/pgvector and Redis.
-- `.\gradlew.bat bootRun` starts the application at `http://localhost:8080`.
+- `.\gradlew.bat bootRun` starts the application at `http://localhost:8081`.
 - `.\gradlew.bat test` runs the complete automated test suite.
 - `.\gradlew.bat test --tests com.lifepilot.tool.DateTimeToolTest` runs one test class.
 - `.\gradlew.bat javadoc` verifies and generates API documentation.

@@ -10,5 +10,5 @@ WORKDIR /app
 RUN useradd --system --uid 10001 appuser
 COPY --from=build /home/gradle/app/build/libs/*.jar app.jar
 USER appuser
-EXPOSE 8080
+EXPOSE 8081
 ENTRYPOINT ["java", "-jar", "/app/app.jar"]

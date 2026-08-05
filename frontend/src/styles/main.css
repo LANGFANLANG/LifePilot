@@ -194,6 +194,13 @@ select {
   font-style: italic;
 }
 
+.btn-logout {
+  margin: 14px 0 0;
+  width: 100%;
+  justify-content: center;
+  font-size: 13px;
+}
+
 .main {
   padding: 34px 44px 70px;
   max-width: 1060px;

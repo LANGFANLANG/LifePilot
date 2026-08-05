@@ -16,6 +16,8 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.actuate.autoconfigure.endpoint.web.WebEndpointAutoConfiguration;
 import org.springframework.boot.actuate.autoconfigure.health.HealthEndpointAutoConfiguration;
 import org.springframework.boot.actuate.autoconfigure.web.server.ManagementContextAutoConfiguration;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.FilterType;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.TestPropertySource;
@@ -29,10 +31,13 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+/**
+ * 验证 Spring Security 只作为过滤器链基线，不拦截业务请求；API 鉴权由 Sa-Token 拦截器完成。
+ */
 class SecurityConfigTest {
 
     @Nested
-    @WebMvcTest(ChatController.class)
+    @WebMvcTest(value = ChatController.class, excludeFilters = @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = SaTokenConfig.class))
     @AutoConfigureMockMvc
     @Import(SecurityConfig.class)
     @ImportAutoConfiguration({
@@ -54,7 +59,7 @@ class SecurityConfigTest {
         private AgentService agentService;
 
         @Test
-        void exposesHealthEndpointWithoutAuthentication() throws Exception {
+        void exposesHealthEndpoint() throws Exception {
             mockMvc.perform(get("/actuator/health"))
                     .andExpect(status().isOk());
         }
@@ -74,7 +79,7 @@ class SecurityConfigTest {
     }
 
     @Nested
-    @WebMvcTest(ChatController.class)
+    @WebMvcTest(value = ChatController.class, excludeFilters = @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = SaTokenConfig.class))
     @AutoConfigureMockMvc
     @Import(SecurityConfig.class)
     @ImportAutoConfiguration({
@@ -84,7 +89,7 @@ class SecurityConfigTest {
             HealthEndpointAutoConfiguration.class
     })
     @TestPropertySource(properties = "lifepilot.security.auth-enabled=true")
-    class JwtEnabledSecurity {
+    class EnabledSecurityBaseline {
 
         @Autowired
         private MockMvc mockMvc;
@@ -96,19 +101,21 @@ class SecurityConfigTest {
         private AgentService agentService;
 
         @Test
-        void stillExposesHealthEndpointWithoutAuthentication() throws Exception {
+        void exposesHealthEndpoint() throws Exception {
             mockMvc.perform(get("/actuator/health"))
                     .andExpect(status().isOk());
         }
 
         @Test
-        void requiresAuthenticationForChatWhenAuthIsEnabled() throws Exception {
+        void doesNotBlockApiThroughSpringSecurityWhenAuthIsEnabled() throws Exception {
+            when(agentService.chat(any())).thenReturn(new AgentResponse(UUID.randomUUID(), "Task created"));
+
             mockMvc.perform(post("/api/chat")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(
                                     new ChatRequest(UUID.randomUUID(), "Create a task")
                             )))
-                    .andExpect(status().isUnauthorized());
+                    .andExpect(status().isOk());
         }
     }
 }

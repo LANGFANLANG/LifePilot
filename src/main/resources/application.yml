@@ -1,3 +1,6 @@
+server:
+  port: 8081
+
 spring:
   application:
     name: lifepilot
@@ -9,3 +12,19 @@ management:
     web:
       exposure:
         include: health,info,metrics,prometheus
+
+sa-token:
+  token-name: Authorization
+  timeout: 86400
+  active-timeout: -1
+  is-concurrent: true
+  is-share: true
+  token-style: uuid
+  is-read-cookie: false
+  is-read-header: true
+  is-read-body: false
+  is-log: true
+
+lifepilot:
+  captcha:
+    expire-seconds: 300

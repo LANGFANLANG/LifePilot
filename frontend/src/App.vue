@@ -1,6 +1,13 @@
 <script setup>
-import { RouterLink, RouterView } from 'vue-router'
+import { RouterLink, RouterView, useRoute, useRouter } from 'vue-router'
 import { computed } from 'vue'
+import { logout } from './api/auth'
+import { setToken } from './api/http'
+
+const router = useRouter()
+const route = useRoute()
+
+const isBare = computed(() => !!route.meta.public)
 
 const navItems = [
   { to: '/', label: '待办', index: '01' },
@@ -14,10 +21,24 @@ const dateLine = computed(() => {
   const month = `${now.getMonth() + 1}`.padStart(2, '0')
   return `${now.getFullYear()} 年 ${month} 月 ${now.getDate()} 日 · 周${week}`
 })
+
+async function onLogout() {
+  try {
+    await logout()
+  } catch {
+    // 即使服务端退出失败也清理本地会话
+  }
+  setToken(null)
+  router.replace({ name: 'login' })
+}
 </script>
 
 <template>
-  <div class="app-shell">
+  <div v-if="isBare" class="bare-shell">
+    <RouterView />
+  </div>
+
+  <div v-else class="app-shell">
     <aside class="sidebar">
       <div class="brand">
         <div class="brand-mark">
@@ -40,6 +61,10 @@ const dateLine = computed(() => {
       </nav>
 
       <div class="sidebar-foot">—— 掌舵今日，也掌舵远方。</div>
+
+      <button class="btn btn-ghost btn-logout" @click="onLogout">
+        <span>退出登录</span>
+      </button>
     </aside>
 
     <main class="main">
@@ -47,3 +72,9 @@ const dateLine = computed(() => {
     </main>
   </div>
 </template>
+
+<style scoped>
+.bare-shell {
+  min-height: 100vh;
+}
+</style>
