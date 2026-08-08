@@ -13,7 +13,7 @@ const api = async (url, options = {}) => {
         throw new Error("服务返回了无法识别的内容");
     }
     if (!response.ok || !body.success) {
-        throw new Error(body.message || `请求失败 (${response.status})`);
+        throw new Error(body.message || "服务暂时没有响应，请稍后再试");
     }
     return body.data;
 };
@@ -25,6 +25,90 @@ const escapeHtml = (value = "") => String(value).replace(/[&<>'"]/g, (char) => (
     "'": "&#39;",
     "\"": "&quot;"
 })[char]);
+
+const renderInlineMarkdown = (value = "") => escapeHtml(value)
+    .replace(/`([^`]+)`/g, "<code>$1</code>")
+    .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
+    .replace(/\*([^*]+)\*/g, "<em>$1</em>");
+
+const renderMarkdown = (value = "") => {
+    const lines = String(value).replace(/\r\n/g, "\n").split("\n");
+    const blocks = [];
+    let paragraph = [];
+    let list = [];
+    let listType = null;
+    let code = [];
+    let inCodeBlock = false;
+
+    const flushParagraph = () => {
+        if (!paragraph.length) return;
+        blocks.push(`<p>${renderInlineMarkdown(paragraph.join(" "))}</p>`);
+        paragraph = [];
+    };
+    const flushList = () => {
+        if (!list.length) return;
+        const tag = listType === "ol" ? "ol" : "ul";
+        blocks.push(`<${tag}>${list.map((item) => `<li>${renderInlineMarkdown(item)}</li>`).join("")}</${tag}>`);
+        list = [];
+        listType = null;
+    };
+    const flushCode = () => {
+        blocks.push(`<pre><code>${escapeHtml(code.join("\n"))}</code></pre>`);
+        code = [];
+    };
+
+    for (const line of lines) {
+        const trimmed = line.trim();
+        if (trimmed.startsWith("```")) {
+            if (inCodeBlock) {
+                flushCode();
+                inCodeBlock = false;
+            } else {
+                flushParagraph();
+                flushList();
+                inCodeBlock = true;
+            }
+            continue;
+        }
+        if (inCodeBlock) {
+            code.push(line);
+            continue;
+        }
+        if (!trimmed) {
+            flushParagraph();
+            flushList();
+            continue;
+        }
+
+        const heading = trimmed.match(/^(#{1,3})\s+(.+)$/);
+        if (heading) {
+            flushParagraph();
+            flushList();
+            const level = heading[1].length + 2;
+            blocks.push(`<h${level}>${renderInlineMarkdown(heading[2])}</h${level}>`);
+            continue;
+        }
+
+        const unordered = trimmed.match(/^[-*]\s+(.+)$/);
+        const ordered = trimmed.match(/^\d+\.\s+(.+)$/);
+        if (unordered || ordered) {
+            flushParagraph();
+            const nextType = ordered ? "ol" : "ul";
+            if (listType && listType !== nextType) flushList();
+            listType = nextType;
+            list.push((unordered || ordered)[1]);
+            continue;
+        }
+
+        flushList();
+        paragraph.push(trimmed);
+    }
+
+    flushParagraph();
+    flushList();
+    if (inCodeBlock || code.length) flushCode();
+    return blocks.join("");
+};
 
 const showToast = (message, error = false) => {
     const toast = $("#toast");
@@ -112,14 +196,17 @@ async function loadDashboard() {
         $("#statusText").textContent = "服务连接失败";
         $("#todoList").innerHTML = '<div class="empty">暂时无法读取任务</div>';
         $("#noteList").innerHTML = '<div class="empty">暂时无法读取便笺</div>';
-        showToast(error.message, true);
+        console.warn("Dashboard data failed to load", error);
     }
 }
 
 function addMessage(role, content, loading = false) {
     const message = document.createElement("div");
     message.className = `message ${role}${loading ? " loading" : ""}`;
-    message.innerHTML = `${role === "assistant" ? '<span class="avatar">LP</span>' : ""}<div><p>${escapeHtml(content)}</p></div>`;
+    const body = role === "assistant" && !loading
+        ? `<div class="markdown-body">${renderMarkdown(content)}</div>`
+        : `<p>${escapeHtml(content)}</p>`;
+    message.innerHTML = `${role === "assistant" ? '<span class="avatar">LP</span>' : ""}<div>${body}</div>`;
     $("#chatStream").appendChild(message);
     $("#chatStream").scrollTop = $("#chatStream").scrollHeight;
     return message;

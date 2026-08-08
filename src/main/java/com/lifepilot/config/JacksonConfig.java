@@ -1,6 +1,5 @@
 package com.lifepilot.config;
 
-import com.fasterxml.jackson.databind.module.SimpleModule;
 import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -20,8 +19,6 @@ public class JacksonConfig {
      */
     @Bean
     public Jackson2ObjectMapperBuilderCustomizer lenientOffsetDateTimeCustomizer() {
-        SimpleModule module = new SimpleModule();
-        module.addDeserializer(OffsetDateTime.class, new LenientOffsetDateTimeDeserializer());
-        return builder -> builder.modules(module);
+        return builder -> builder.deserializerByType(OffsetDateTime.class, new LenientOffsetDateTimeDeserializer());
     }
 }

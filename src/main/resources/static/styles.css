@@ -151,6 +151,45 @@ button { cursor: pointer; }
 .message.user > div { background: var(--ink); color: white; }
 .message p { margin: 0; line-height: 1.7; font-size: 14px; }
 .message.loading p::after { content: "..."; }
+.markdown-body {
+    font-size: 14px;
+    line-height: 1.75;
+}
+.markdown-body > * { margin: 0; }
+.markdown-body > * + * { margin-top: 12px; }
+.markdown-body h3,
+.markdown-body h4,
+.markdown-body h5 {
+    font-size: 15px;
+    line-height: 1.45;
+}
+.markdown-body ul,
+.markdown-body ol {
+    padding-left: 22px;
+}
+.markdown-body li + li { margin-top: 4px; }
+.markdown-body strong { font-weight: 700; }
+.markdown-body em { color: var(--muted); }
+.markdown-body code {
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    background: #fff;
+    padding: 1px 5px;
+    font-family: "Consolas", "SFMono-Regular", monospace;
+    font-size: .92em;
+}
+.markdown-body pre {
+    overflow: auto;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: #fff;
+    padding: 10px 12px;
+}
+.markdown-body pre code {
+    border: 0;
+    padding: 0;
+    background: transparent;
+}
 .composer {
     display: flex;
     gap: 10px;
