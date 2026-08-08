@@ -1,15 +1,8 @@
 package com.lifepilot.domain;
 
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.OrderBy;
-import jakarta.persistence.Table;
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
 
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
@@ -19,32 +12,23 @@ import java.util.UUID;
 /**
  * AI 生成但尚未落库为真实待办的计划草案。
  */
-@Entity
-@Table(name = "plan_previews")
+@TableName("plan_previews")
 public class PlanPreview {
 
-    @Id
+    @TableId
     private UUID id;
 
-    @Column(name = "conversation_id")
     private UUID conversationId;
 
-    @Column(nullable = false, columnDefinition = "TEXT")
     private String goal;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 40)
     private PlanPreviewStatus status;
 
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
-    @JoinColumn(name = "plan_preview_id", nullable = false)
-    @OrderBy("sortOrder ASC")
+    @TableField(exist = false)
     private List<PlanPreviewTask> tasks = new ArrayList<>();
 
-    @Column(name = "created_at", nullable = false)
     private OffsetDateTime createdAt;
 
-    @Column(name = "updated_at", nullable = false)
     private OffsetDateTime updatedAt;
 
     protected PlanPreview() {
@@ -121,6 +105,10 @@ public class PlanPreview {
 
     public List<PlanPreviewTask> getTasks() {
         return List.copyOf(tasks);
+    }
+
+    public void replaceTasks(List<PlanPreviewTask> tasks) {
+        this.tasks = tasks == null ? new ArrayList<>() : new ArrayList<>(tasks);
     }
 
     public OffsetDateTime getCreatedAt() {

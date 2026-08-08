@@ -7,6 +7,7 @@ import com.lifepilot.repository.ConversationRepository;
 import com.lifepilot.repository.ExecutionLogRepository;
 import com.lifepilot.repository.NoteRepository;
 import com.lifepilot.repository.PlanPreviewRepository;
+import com.lifepilot.repository.PlanPreviewTaskRepository;
 import com.lifepilot.repository.ReminderDeliveryRepository;
 import com.lifepilot.repository.TodoRepository;
 import com.lifepilot.repository.UserAccountRepository;
@@ -24,7 +25,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         "spring.ai.openai.api-key=test-key",
         "spring.autoconfigure.exclude=" +
                 "org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration," +
-                "org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration," +
                 "org.springframework.boot.autoconfigure.jdbc.DataSourceTransactionManagerAutoConfiguration"
 })
 @AutoConfigureMockMvc
@@ -56,6 +56,9 @@ class LifePilotApplicationTests {
 
     @MockBean
     private PlanPreviewRepository planPreviewRepository;
+
+    @MockBean
+    private PlanPreviewTaskRepository planPreviewTaskRepository;
 
     @MockBean
     private ReminderDeliveryRepository reminderDeliveryRepository;

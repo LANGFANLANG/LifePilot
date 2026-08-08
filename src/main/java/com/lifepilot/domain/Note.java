@@ -1,9 +1,7 @@
 package com.lifepilot.domain;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
 
 import java.time.OffsetDateTime;
 import java.util.UUID;
@@ -11,23 +9,18 @@ import java.util.UUID;
 /**
  * 持久化的自由文本笔记。
  */
-@Entity
-@Table(name = "notes")
+@TableName("notes")
 public class Note {
 
-    @Id
+    @TableId
     private UUID id;
 
-    @Column(nullable = false, length = 200)
     private String title;
 
-    @Column(nullable = false, columnDefinition = "TEXT")
     private String content;
 
-    @Column(name = "created_at", nullable = false)
     private OffsetDateTime createdAt;
 
-    @Column(name = "updated_at", nullable = false)
     private OffsetDateTime updatedAt;
 
     /**

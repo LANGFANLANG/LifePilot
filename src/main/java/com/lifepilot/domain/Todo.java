@@ -1,11 +1,7 @@
 package com.lifepilot.domain;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
 
 import java.time.OffsetDateTime;
 import java.util.UUID;
@@ -13,58 +9,40 @@ import java.util.UUID;
 /**
  * 持久化的待办事项及其生命周期状态。
  */
-@Entity
-@Table(name = "todos")
+@TableName("todos")
 public class Todo {
 
-    @Id
+    @TableId
     private UUID id;
 
-    @Column(nullable = false, length = 200)
     private String title;
 
-    @Column(columnDefinition = "TEXT")
     private String description;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 40)
     private TodoStatus status;
 
-    @Column(name = "due_at")
     private OffsetDateTime dueAt;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
     private TodoPriority priority;
 
-    @Column(length = 80)
     private String category;
 
-    @Column(name = "estimated_minutes")
     private Integer estimatedMinutes;
 
-    @Column(name = "planned_start_at")
     private OffsetDateTime plannedStartAt;
 
-    @Column(name = "reminder_at")
     private OffsetDateTime reminderAt;
 
-    @Column(name = "completed_at")
     private OffsetDateTime completedAt;
 
-    @Column(name = "parent_todo_id")
     private UUID parentTodoId;
 
-    @Column(nullable = false, length = 40)
     private String source;
 
-    @Column(name = "postponement_count", nullable = false)
     private int postponementCount;
 
-    @Column(name = "created_at", nullable = false)
     private OffsetDateTime createdAt;
 
-    @Column(name = "updated_at", nullable = false)
     private OffsetDateTime updatedAt;
 
     /**

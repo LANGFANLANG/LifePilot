@@ -1,9 +1,7 @@
 package com.lifepilot.domain;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
 
 import java.time.OffsetDateTime;
 import java.util.UUID;
@@ -11,29 +9,22 @@ import java.util.UUID;
 /**
  * 持久化的登录用户账号。
  */
-@Entity
-@Table(name = "user_accounts")
+@TableName("user_accounts")
 public class UserAccount {
 
-    @Id
+    @TableId
     private UUID id;
 
-    @Column(nullable = false, unique = true, length = 64)
     private String username;
 
-    @Column(name = "password_hash", nullable = false, length = 100)
     private String passwordHash;
 
-    @Column(name = "display_name", length = 64)
     private String displayName;
 
-    @Column(nullable = false)
     private boolean enabled;
 
-    @Column(name = "created_at", nullable = false)
     private OffsetDateTime createdAt;
 
-    @Column(name = "updated_at", nullable = false)
     private OffsetDateTime updatedAt;
 
     /**

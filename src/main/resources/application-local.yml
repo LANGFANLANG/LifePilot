@@ -4,8 +4,6 @@ spring:
     username: lifepilot
     password: lifepilot
   jpa:
-    hibernate:
-      ddl-auto: validate
     open-in-view: false
   flyway:
     enabled: true
@@ -25,3 +23,11 @@ lifepilot:
   security:
     auth-enabled: false
     jwt-secret: ${LIFEPILOT_JWT_SECRET:change-me-change-me-change-me-change-me}
+
+mybatis-plus:
+  type-handlers-package: com.lifepilot.config
+  configuration:
+    map-underscore-to-camel-case: true
+  global-config:
+    db-config:
+      update-strategy: always

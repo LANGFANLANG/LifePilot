@@ -1,11 +1,7 @@
 package com.lifepilot.domain;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
 
 import java.time.OffsetDateTime;
 import java.util.UUID;
@@ -13,33 +9,24 @@ import java.util.UUID;
 /**
  * 记录 Agent 或工具一次执行过程的持久化日志。
  */
-@Entity
-@Table(name = "execution_logs")
+@TableName("execution_logs")
 public class ExecutionLog {
 
-    @Id
+    @TableId
     private UUID id;
 
-    @Column(name = "conversation_id")
     private UUID conversationId;
 
-    @Column(name = "action_type", nullable = false, length = 80)
     private String actionType;
 
-    @Column(columnDefinition = "TEXT")
     private String input;
 
-    @Column(columnDefinition = "TEXT")
     private String output;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 40)
     private ExecutionStatus status;
 
-    @Column(name = "error_message", columnDefinition = "TEXT")
     private String errorMessage;
 
-    @Column(name = "created_at", nullable = false)
     private OffsetDateTime createdAt;
 
     /**

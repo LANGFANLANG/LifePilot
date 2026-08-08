@@ -1,11 +1,7 @@
 package com.lifepilot.domain;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
 
 import java.time.OffsetDateTime;
 import java.util.UUID;
@@ -13,42 +9,32 @@ import java.util.UUID;
 /**
  * AI 计划草案中的单个待办任务。
  */
-@Entity
-@Table(name = "plan_preview_tasks")
+@TableName("plan_preview_tasks")
 public class PlanPreviewTask {
 
-    @Id
+    @TableId
     private UUID id;
 
-    @Column(nullable = false, length = 200)
+    private UUID planPreviewId;
+
     private String title;
 
-    @Column(columnDefinition = "TEXT")
     private String description;
 
-    @Column(name = "due_at")
     private OffsetDateTime dueAt;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
     private TodoPriority priority;
 
-    @Column(length = 80)
     private String category;
 
-    @Column(name = "estimated_minutes")
     private Integer estimatedMinutes;
 
-    @Column(name = "planned_start_at")
     private OffsetDateTime plannedStartAt;
 
-    @Column(name = "reminder_at")
     private OffsetDateTime reminderAt;
 
-    @Column(name = "sort_order", nullable = false)
     private int sortOrder;
 
-    @Column(name = "created_at", nullable = false)
     private OffsetDateTime createdAt;
 
     protected PlanPreviewTask() {
@@ -56,6 +42,7 @@ public class PlanPreviewTask {
 
     private PlanPreviewTask(
             UUID id,
+            UUID planPreviewId,
             String title,
             String description,
             OffsetDateTime dueAt,
@@ -68,6 +55,7 @@ public class PlanPreviewTask {
             OffsetDateTime createdAt
     ) {
         this.id = id;
+        this.planPreviewId = planPreviewId;
         this.title = title;
         this.description = description;
         this.dueAt = dueAt;
@@ -93,6 +81,7 @@ public class PlanPreviewTask {
     ) {
         return new PlanPreviewTask(
                 UUID.randomUUID(),
+                null,
                 title,
                 description,
                 dueAt,
@@ -108,6 +97,14 @@ public class PlanPreviewTask {
 
     public UUID getId() {
         return id;
+    }
+
+    public UUID getPlanPreviewId() {
+        return planPreviewId;
+    }
+
+    public void assignToPreview(UUID planPreviewId) {
+        this.planPreviewId = planPreviewId;
     }
 
     public String getTitle() {

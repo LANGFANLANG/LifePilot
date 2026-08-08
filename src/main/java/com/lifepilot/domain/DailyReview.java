@@ -1,11 +1,7 @@
 package com.lifepilot.domain;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
 
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
@@ -14,39 +10,28 @@ import java.util.UUID;
 /**
  * 某一天的执行复盘。
  */
-@Entity
-@Table(name = "daily_reviews")
+@TableName("daily_reviews")
 public class DailyReview {
 
-    @Id
+    @TableId
     private UUID id;
 
-    @Column(name = "review_date", nullable = false, unique = true)
     private LocalDate reviewDate;
 
-    @Column(name = "completed_summary", columnDefinition = "TEXT")
     private String completedSummary;
 
-    @Column(name = "unfinished_summary", columnDefinition = "TEXT")
     private String unfinishedSummary;
 
-    @Column(name = "new_tasks_summary", columnDefinition = "TEXT")
     private String newTasksSummary;
 
-    @Column(columnDefinition = "TEXT")
     private String reflection;
 
-    @Column(name = "tomorrow_plan", columnDefinition = "TEXT")
     private String tomorrowPlan;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 40)
     private DailyReviewStatus status;
 
-    @Column(name = "created_at", nullable = false)
     private OffsetDateTime createdAt;
 
-    @Column(name = "updated_at", nullable = false)
     private OffsetDateTime updatedAt;
 
     protected DailyReview() {

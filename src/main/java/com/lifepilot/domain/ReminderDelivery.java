@@ -1,11 +1,7 @@
 package com.lifepilot.domain;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
 
 import java.time.OffsetDateTime;
 import java.util.UUID;
@@ -13,34 +9,24 @@ import java.util.UUID;
 /**
  * 站内提醒投递记录。
  */
-@Entity
-@Table(name = "reminder_deliveries")
+@TableName("reminder_deliveries")
 public class ReminderDelivery {
 
-    @Id
+    @TableId
     private UUID id;
 
-    @Column(name = "todo_id", nullable = false)
     private UUID todoId;
 
-    @Column(name = "reminder_at", nullable = false)
     private OffsetDateTime reminderAt;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 40)
     private ReminderChannel channel;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 40)
     private ReminderDeliveryStatus status;
 
-    @Column(columnDefinition = "TEXT")
     private String message;
 
-    @Column(name = "error_message", columnDefinition = "TEXT")
     private String errorMessage;
 
-    @Column(name = "created_at", nullable = false)
     private OffsetDateTime createdAt;
 
     protected ReminderDelivery() {

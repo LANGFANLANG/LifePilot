@@ -3,6 +3,7 @@ package com.lifepilot.service;
 import com.lifepilot.domain.PlanPreview;
 import com.lifepilot.domain.PlanPreviewTask;
 import com.lifepilot.repository.PlanPreviewRepository;
+import com.lifepilot.repository.PlanPreviewTaskRepository;
 import com.lifepilot.service.dto.CreatePlanPreviewCommand;
 import com.lifepilot.service.dto.CreateTodoCommand;
 import com.lifepilot.service.dto.PlanPreviewView;
@@ -21,10 +22,16 @@ import java.util.stream.IntStream;
 public class PlanPreviewService {
 
     private final PlanPreviewRepository planPreviewRepository;
+    private final PlanPreviewTaskRepository planPreviewTaskRepository;
     private final TodoService todoService;
 
-    public PlanPreviewService(PlanPreviewRepository planPreviewRepository, TodoService todoService) {
+    public PlanPreviewService(
+            PlanPreviewRepository planPreviewRepository,
+            PlanPreviewTaskRepository planPreviewTaskRepository,
+            TodoService todoService
+    ) {
         this.planPreviewRepository = planPreviewRepository;
+        this.planPreviewTaskRepository = planPreviewTaskRepository;
         this.todoService = todoService;
     }
 
@@ -35,7 +42,9 @@ public class PlanPreviewService {
                 .mapToObj(index -> toPreviewTask(taskCommands.get(index), index))
                 .toList();
         PlanPreview preview = PlanPreview.create(command.conversationId(), command.goal(), tasks);
-        return PlanPreviewView.from(planPreviewRepository.save(preview));
+        planPreviewRepository.save(preview);
+        saveTasks(preview);
+        return PlanPreviewView.from(preview);
     }
 
     @Transactional(readOnly = true)
@@ -63,8 +72,18 @@ public class PlanPreviewService {
     }
 
     private PlanPreview find(UUID id) {
-        return planPreviewRepository.findById(id)
+        PlanPreview preview = planPreviewRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("plan preview not found"));
+        preview.replaceTasks(planPreviewTaskRepository.findByPlanPreviewIdOrderBySortOrderAsc(id));
+        return preview;
+    }
+
+    private void saveTasks(PlanPreview preview) {
+        planPreviewTaskRepository.deleteByPlanPreviewId(preview.getId());
+        preview.getTasks().forEach(task -> {
+            task.assignToPreview(preview.getId());
+            planPreviewTaskRepository.save(task);
+        });
     }
 
     private PlanPreviewTask toPreviewTask(CreateTodoCommand command, int sortOrder) {

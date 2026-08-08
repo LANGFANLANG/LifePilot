@@ -1,14 +1,7 @@
 package com.lifepilot.domain;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
 
 import java.time.OffsetDateTime;
 import java.util.UUID;
@@ -16,25 +9,18 @@ import java.util.UUID;
 /**
  * 持久化的会话消息。
  */
-@Entity
-@Table(name = "chat_messages")
+@TableName("chat_messages")
 public class ChatMessage {
 
-    @Id
+    @TableId
     private UUID id;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "conversation_id", nullable = false)
-    private Conversation conversation;
+    private UUID conversationId;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 40)
     private ChatRole role;
 
-    @Column(nullable = false, columnDefinition = "TEXT")
     private String content;
 
-    @Column(name = "created_at", nullable = false)
     private OffsetDateTime createdAt;
 
     /**
@@ -43,9 +29,9 @@ public class ChatMessage {
     protected ChatMessage() {
     }
 
-    private ChatMessage(UUID id, Conversation conversation, ChatRole role, String content, OffsetDateTime createdAt) {
+    private ChatMessage(UUID id, UUID conversationId, ChatRole role, String content, OffsetDateTime createdAt) {
         this.id = id;
-        this.conversation = conversation;
+        this.conversationId = conversationId;
         this.role = role;
         this.content = content;
         this.createdAt = createdAt;
@@ -60,7 +46,7 @@ public class ChatMessage {
      * @return 新建消息
      */
     public static ChatMessage create(Conversation conversation, ChatRole role, String content) {
-        return new ChatMessage(UUID.randomUUID(), conversation, role, content, OffsetDateTime.now());
+        return new ChatMessage(UUID.randomUUID(), conversation.getId(), role, content, OffsetDateTime.now());
     }
 
     /**
@@ -78,7 +64,7 @@ public class ChatMessage {
      * @return 所属会话标识
      */
     public UUID getConversationId() {
-        return conversation.getId();
+        return conversationId;
     }
 
     /**

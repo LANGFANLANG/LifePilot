@@ -6,6 +6,7 @@ import com.lifepilot.domain.PlanPreviewTask;
 import com.lifepilot.domain.TodoPriority;
 import com.lifepilot.domain.TodoStatus;
 import com.lifepilot.repository.PlanPreviewRepository;
+import com.lifepilot.repository.PlanPreviewTaskRepository;
 import com.lifepilot.service.dto.CreatePlanPreviewCommand;
 import com.lifepilot.service.dto.CreateTodoCommand;
 import com.lifepilot.service.dto.PlanPreviewView;
@@ -35,6 +36,9 @@ class PlanPreviewServiceTest {
 
     @Mock
     private PlanPreviewRepository planPreviewRepository;
+
+    @Mock
+    private PlanPreviewTaskRepository planPreviewTaskRepository;
 
     @Mock
     private TodoService todoService;
@@ -67,6 +71,8 @@ class PlanPreviewServiceTest {
                 List.of(task("Choose platform"), task("Write first post"))
         );
         when(planPreviewRepository.findById(previewId)).thenReturn(Optional.of(preview));
+        when(planPreviewTaskRepository.findByPlanPreviewIdOrderBySortOrderAsc(previewId))
+                .thenReturn(preview.getTasks());
         when(todoService.create(any())).thenReturn(todoView("created"));
         when(planPreviewRepository.save(any(PlanPreview.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
@@ -110,6 +116,8 @@ class PlanPreviewServiceTest {
         PlanPreview preview = PlanPreview.create(UUID.randomUUID(), "Launch a blog", List.of(task("Choose platform")));
         preview.reject();
         when(planPreviewRepository.findById(previewId)).thenReturn(Optional.of(preview));
+        when(planPreviewTaskRepository.findByPlanPreviewIdOrderBySortOrderAsc(previewId))
+                .thenReturn(preview.getTasks());
 
         assertThatThrownBy(() -> planPreviewService.confirm(previewId))
                 .isInstanceOf(IllegalArgumentException.class)
