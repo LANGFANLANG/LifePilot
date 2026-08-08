@@ -26,88 +26,9 @@ const escapeHtml = (value = "") => String(value).replace(/[&<>'"]/g, (char) => (
     "\"": "&quot;"
 })[char]);
 
-const renderInlineMarkdown = (value = "") => escapeHtml(value)
-    .replace(/`([^`]+)`/g, "<code>$1</code>")
-    .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
-    .replace(/\*([^*]+)\*/g, "<em>$1</em>");
-
-const renderMarkdown = (value = "") => {
-    const lines = String(value).replace(/\r\n/g, "\n").split("\n");
-    const blocks = [];
-    let paragraph = [];
-    let list = [];
-    let listType = null;
-    let code = [];
-    let inCodeBlock = false;
-
-    const flushParagraph = () => {
-        if (!paragraph.length) return;
-        blocks.push(`<p>${renderInlineMarkdown(paragraph.join(" "))}</p>`);
-        paragraph = [];
-    };
-    const flushList = () => {
-        if (!list.length) return;
-        const tag = listType === "ol" ? "ol" : "ul";
-        blocks.push(`<${tag}>${list.map((item) => `<li>${renderInlineMarkdown(item)}</li>`).join("")}</${tag}>`);
-        list = [];
-        listType = null;
-    };
-    const flushCode = () => {
-        blocks.push(`<pre><code>${escapeHtml(code.join("\n"))}</code></pre>`);
-        code = [];
-    };
-
-    for (const line of lines) {
-        const trimmed = line.trim();
-        if (trimmed.startsWith("```")) {
-            if (inCodeBlock) {
-                flushCode();
-                inCodeBlock = false;
-            } else {
-                flushParagraph();
-                flushList();
-                inCodeBlock = true;
-            }
-            continue;
-        }
-        if (inCodeBlock) {
-            code.push(line);
-            continue;
-        }
-        if (!trimmed) {
-            flushParagraph();
-            flushList();
-            continue;
-        }
-
-        const heading = trimmed.match(/^(#{1,3})\s+(.+)$/);
-        if (heading) {
-            flushParagraph();
-            flushList();
-            const level = heading[1].length + 2;
-            blocks.push(`<h${level}>${renderInlineMarkdown(heading[2])}</h${level}>`);
-            continue;
-        }
-
-        const unordered = trimmed.match(/^[-*]\s+(.+)$/);
-        const ordered = trimmed.match(/^\d+\.\s+(.+)$/);
-        if (unordered || ordered) {
-            flushParagraph();
-            const nextType = ordered ? "ol" : "ul";
-            if (listType && listType !== nextType) flushList();
-            listType = nextType;
-            list.push((unordered || ordered)[1]);
-            continue;
-        }
-
-        flushList();
-        paragraph.push(trimmed);
-    }
-
-    flushParagraph();
-    flushList();
-    if (inCodeBlock || code.length) flushCode();
-    return blocks.join("");
+const renderAssistantMarkdownElement = (container, content) => {
+    container.className = "markdown-body";
+    container.innerHTML = window.LifePilotMarkdown.renderMarkdown(content);
 };
 
 const showToast = (message, error = false) => {
@@ -203,13 +124,29 @@ async function loadDashboard() {
 function addMessage(role, content, loading = false) {
     const message = document.createElement("div");
     message.className = `message ${role}${loading ? " loading" : ""}`;
-    const body = role === "assistant" && !loading
-        ? `<div class="markdown-body">${renderMarkdown(content)}</div>`
-        : `<p>${escapeHtml(content)}</p>`;
-    message.innerHTML = `${role === "assistant" ? '<span class="avatar">LP</span>' : ""}<div>${body}</div>`;
+    message.innerHTML = `${role === "assistant" ? '<span class="avatar">LP</span>' : ""}<div></div>`;
+    const bubble = message.lastElementChild;
+    if (role === "assistant" && !loading) {
+        const body = document.createElement("div");
+        renderAssistantMarkdownElement(body, content);
+        bubble.appendChild(body);
+    } else {
+        bubble.innerHTML = `<p>${escapeHtml(content)}</p>`;
+    }
     $("#chatStream").appendChild(message);
     $("#chatStream").scrollTop = $("#chatStream").scrollHeight;
     return message;
+}
+
+function hydrateStaticAssistantMessages() {
+    document.querySelectorAll(".message.assistant > div").forEach((bubble) => {
+        if (bubble.querySelector(".markdown-body")) return;
+        const text = bubble.textContent.trim();
+        bubble.textContent = "";
+        const body = document.createElement("div");
+        renderAssistantMarkdownElement(body, text);
+        bubble.appendChild(body);
+    });
 }
 
 $("#chatForm").addEventListener("submit", async (event) => {
@@ -363,4 +300,5 @@ $("#todayLabel").textContent = new Intl.DateTimeFormat("zh-CN", {
     day: "numeric",
     weekday: "long"
 }).format(new Date());
+hydrateStaticAssistantMessages();
 loadDashboard();

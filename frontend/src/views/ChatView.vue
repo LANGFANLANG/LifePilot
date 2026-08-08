@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router'
 import { sendChatMessage } from '../api/chat'
 import { confirmPlanPreview, getPlanPreview, rejectPlanPreview } from '../api/planPreviews'
 import { greeting } from '../utils/format'
+import { renderMarkdown } from '../utils/markdown'
 
 const router = useRouter()
 const messages = ref([])
@@ -103,7 +104,8 @@ function onKeydown(e) {
       <div v-for="(msg, i) in messages" :key="i" class="msg" :class="msg.role">
         <div class="avatar">{{ msg.role === 'user' ? '我' : 'P' }}</div>
         <div class="bubble">
-          <div>{{ msg.content }}</div>
+          <div v-if="msg.role === 'assistant'" class="markdown" v-html="renderMarkdown(msg.content)"></div>
+          <div v-else>{{ msg.content }}</div>
 
           <div v-for="plan in msg.plans || []" :key="plan.preview.id" class="plan-preview">
             <div class="plan-preview-head">
