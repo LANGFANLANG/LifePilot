@@ -86,6 +86,6 @@ class NoteToolTest {
 
     private static NoteView note(String title, String content) {
         OffsetDateTime now = OffsetDateTime.parse("2026-07-10T10:00:00+08:00");
-        return new NoteView(UUID.randomUUID(), title, content, now, now);
+        return new NoteView(UUID.randomUUID(), title, content, "TEXT", null, null, null, now, now);
     }
 }

@@ -29,6 +29,9 @@ class NoteServiceTest {
     @Mock
     private NoteRepository noteRepository;
 
+    @Mock
+    private NoteFileService noteFileService;
+
     @InjectMocks
     private NoteService noteService;
 
@@ -67,6 +70,23 @@ class NoteServiceTest {
 
         assertThat(found.id()).isEqualTo(note.getId());
         assertThat(found.title()).isEqualTo("Meeting notes");
+    }
+
+    @Test
+    void uploadsFileNote() {
+        when(noteRepository.save(any(Note.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+        when(noteFileService.store(any()))
+                .thenReturn(new NoteFileService.StoredNoteFile("日报.md", "text/markdown", "stored.md", 128, "# 日报"));
+
+        NoteView view = noteService.upload(null);
+
+        ArgumentCaptor<Note> captor = ArgumentCaptor.forClass(Note.class);
+        verify(noteRepository).save(captor.capture());
+        assertThat(captor.getValue().getTitle()).isEqualTo("日报");
+        assertThat(captor.getValue().getSourceType()).isEqualTo("FILE");
+        assertThat(view.originalFilename()).isEqualTo("日报.md");
+        assertThat(view.content()).isEqualTo("# 日报");
     }
 
     @Test

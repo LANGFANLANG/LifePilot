@@ -1,6 +1,6 @@
 <script setup>
 import { computed, onMounted, reactive, ref } from 'vue'
-import { createNote, getNote, listNotes } from '../api/notes'
+import { createNote, getNote, listNotes, uploadNote } from '../api/notes'
 import { formatDate, greeting } from '../utils/format'
 
 const notes = ref([])
@@ -11,6 +11,9 @@ const selected = ref(null)
 const form = reactive({ title: '', content: '' })
 const saving = ref(false)
 const formError = ref('')
+const uploadInput = ref(null)
+const uploading = ref(false)
+const uploadError = ref('')
 
 const headline = computed(() => {
   const g = greeting()
@@ -71,6 +74,24 @@ async function submit() {
   }
 }
 
+async function uploadSelected(event) {
+  const file = event.target.files?.[0]
+  if (!file) return
+
+  uploading.value = true
+  uploadError.value = ''
+  try {
+    const created = await uploadNote(file)
+    notes.value = [created, ...notes.value]
+    selected.value = created
+    event.target.value = ''
+  } catch (e) {
+    uploadError.value = e.message
+  } finally {
+    uploading.value = false
+  }
+}
+
 onMounted(load)
 </script>
 
@@ -101,6 +122,22 @@ onMounted(load)
         </form>
       </div>
 
+      <div class="card form-panel note-upload" style="margin: 0">
+        <div class="form-title">上传笔记文件</div>
+        <p>支持 Markdown、文本、CSV、Word 和 Excel，上传后可在右侧查看预览。</p>
+        <div v-if="uploadError" class="form-error">{{ uploadError }}</div>
+        <input
+          ref="uploadInput"
+          type="file"
+          accept=".md,.markdown,.txt,.csv,.doc,.docx,.xls,.xlsx"
+          :disabled="uploading"
+          @change="uploadSelected"
+        />
+        <button type="button" class="btn btn-ghost" :disabled="uploading" @click="uploadInput?.click()">
+          {{ uploading ? '上传中…' : '选择文件上传' }}
+        </button>
+      </div>
+
       <div v-if="loading" class="empty">
         <span class="empty-glyph">· · ·</span>
         <p>正在翻阅笔记本…</p>
@@ -115,6 +152,7 @@ onMounted(load)
           @click="openNote(note)"
         >
           <h3>{{ note.title }}</h3>
+          <span v-if="note.sourceType === 'FILE'" class="note-kind">文件</span>
           <p class="note-preview">{{ note.content }}</p>
           <div class="note-date">{{ formatDate(note.createdAt) }}</div>
         </button>
@@ -125,6 +163,9 @@ onMounted(load)
       <template v-if="selected">
         <h2>{{ selected.title }}</h2>
         <div class="note-date">{{ formatDate(selected.createdAt) }}</div>
+        <div v-if="selected.sourceType === 'FILE'" class="note-file-meta">
+          {{ selected.originalFilename }}<template v-if="selected.fileSize"> · {{ Math.ceil(selected.fileSize / 1024) }} KB</template>
+        </div>
         <div class="note-content">{{ selected.content }}</div>
       </template>
       <template v-else>

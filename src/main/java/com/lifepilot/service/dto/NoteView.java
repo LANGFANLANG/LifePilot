@@ -18,6 +18,10 @@ public record NoteView(
         UUID id,
         String title,
         String content,
+        String sourceType,
+        String originalFilename,
+        String contentType,
+        Long fileSize,
         OffsetDateTime createdAt,
         OffsetDateTime updatedAt
 ) {
@@ -33,6 +37,10 @@ public record NoteView(
                 note.getId(),
                 note.getTitle(),
                 note.getContent(),
+                note.getSourceType(),
+                note.getOriginalFilename(),
+                note.getContentType(),
+                note.getFileSize(),
                 note.getCreatedAt(),
                 note.getUpdatedAt()
         );

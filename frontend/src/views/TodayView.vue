@@ -134,7 +134,7 @@ onMounted(load)
 
       <div class="today-panel">
         <div class="panel-head">
-          <h2>时间线</h2>
+          <h2>今日时间线</h2>
           <span>{{ timeline.length }} 项</span>
         </div>
         <div v-if="timeline.length" class="timeline-list">
@@ -151,13 +151,13 @@ onMounted(load)
 
       <div class="today-panel">
         <div class="panel-head">
-          <h2>Inbox</h2>
+          <h2>待规划</h2>
           <span>{{ inbox.length }} 项</span>
         </div>
         <div v-if="inbox.length" class="inbox-list">
           <article v-for="item in inbox" :key="item.id" class="inbox-item">
             <span>{{ item.title }}</span>
-            <button class="btn btn-ghost" @click="router.push('/todos')">整理</button>
+            <button class="btn btn-ghost" @click="router.push('/todos')">去规划</button>
           </article>
         </div>
         <div v-else class="panel-empty">未规划事项已经清空。</div>

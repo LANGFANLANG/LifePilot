@@ -11,3 +11,9 @@ export function getNote(id) {
 export function createNote(payload) {
   return request('/api/notes', { method: 'POST', body: payload })
 }
+
+export function uploadNote(file) {
+  const body = new FormData()
+  body.append('file', file)
+  return request('/api/notes/upload', { method: 'POST', body })
+}

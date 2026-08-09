@@ -11,7 +11,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.UUID;
@@ -43,6 +45,17 @@ public class NoteController {
     @PostMapping
     public Result<NoteView> create(@Valid @RequestBody CreateNoteRequest request) {
         return Result.success(noteService.create(new CreateNoteCommand(request.title(), request.content())));
+    }
+
+    /**
+     * 上传文件并创建文件笔记。
+     *
+     * @param file 上传的笔记文件
+     * @return 包含已创建笔记的成功响应
+     */
+    @PostMapping("/upload")
+    public Result<NoteView> upload(@RequestParam("file") MultipartFile file) {
+        return Result.success(noteService.upload(file));
     }
 
     /**

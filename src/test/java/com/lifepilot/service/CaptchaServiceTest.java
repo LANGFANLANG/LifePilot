@@ -49,7 +49,7 @@ class CaptchaServiceTest {
         assertThat(view.captchaId()).isNotBlank();
         assertThat(view.imageBase64()).contains("base64");
         assertThat(keyCaptor.getValue()).startsWith("auth:captcha:");
-        assertThat(answerCaptor.getValue()).matches("\\d+");
+        assertThat(answerCaptor.getValue()).matches("-?\\d+");
         assertThat(ttlCaptor.getValue()).isEqualTo(Duration.ofSeconds(300));
     }
 

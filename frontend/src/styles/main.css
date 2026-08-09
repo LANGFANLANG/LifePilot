@@ -914,6 +914,17 @@ select {
   min-height: 110px;
 }
 
+.note-upload p {
+  margin: 0 0 12px;
+  color: var(--muted);
+  font-size: 12.5px;
+  line-height: 1.6;
+}
+
+.note-upload input[type="file"] {
+  display: none;
+}
+
 .note-list {
   display: flex;
   flex-direction: column;
@@ -949,6 +960,16 @@ select {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.note-kind {
+  display: inline-block;
+  margin-bottom: 6px;
+  border: 1px solid var(--hairline);
+  border-radius: 999px;
+  padding: 2px 7px;
+  color: var(--muted);
+  font-size: 11px;
 }
 
 .note-card .note-preview {
@@ -992,6 +1013,12 @@ select {
   padding-bottom: 14px;
   border-bottom: 1px solid var(--hairline);
   margin-bottom: 18px;
+}
+
+.note-file-meta {
+  margin: -6px 0 18px;
+  color: var(--muted);
+  font-size: 13px;
 }
 
 .note-reader .note-content {

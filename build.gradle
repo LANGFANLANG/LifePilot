@@ -32,6 +32,7 @@ dependencies {
     implementation 'cn.dev33:sa-token-redis-jackson:1.39.0'
     implementation 'com.github.whvcse:easy-captcha:1.6.2'
     implementation 'org.openjdk.nashorn:nashorn-core:15.4'
+    implementation 'io.minio:minio:9.0.2'
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
 
     runtimeOnly 'org.postgresql:postgresql'

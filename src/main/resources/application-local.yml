@@ -23,6 +23,11 @@ lifepilot:
   security:
     auth-enabled: false
     jwt-secret: ${LIFEPILOT_JWT_SECRET:change-me-change-me-change-me-change-me}
+  minio:
+    endpoint: ${LIFEPILOT_MINIO_ENDPOINT:http://localhost:9000}
+    access-key: ${LIFEPILOT_MINIO_ACCESS_KEY:lifepilot}
+    secret-key: ${LIFEPILOT_MINIO_SECRET_KEY:lifepilot-secret}
+    bucket: ${LIFEPILOT_MINIO_BUCKET:lifepilot-notes}
 
 mybatis-plus:
   type-handlers-package: com.lifepilot.config

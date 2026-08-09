@@ -19,6 +19,7 @@ import java.util.UUID;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -71,8 +72,19 @@ class NoteControllerTest {
                 .andExpect(jsonPath("$.data.id").value(id.toString()));
     }
 
+    @Test
+    void uploadsNoteFile() throws Exception {
+        when(noteService.upload(any())).thenReturn(noteView(UUID.randomUUID(), "daily"));
+
+        mockMvc.perform(multipart("/api/notes/upload")
+                        .file("file", "日报".getBytes()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.title").value("daily"));
+    }
+
     private static NoteView noteView(UUID id, String title) {
         OffsetDateTime now = OffsetDateTime.parse("2026-07-10T10:00:00+08:00");
-        return new NoteView(id, title, "Discuss the MVP scope", now, now);
+        return new NoteView(id, title, "Discuss the MVP scope", "TEXT", null, null, null, now, now);
     }
 }

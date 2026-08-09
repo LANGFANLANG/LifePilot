@@ -25,6 +25,23 @@ services:
       timeout: 3s
       retries: 10
 
+  minio:
+    image: minio/minio:latest
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: lifepilot
+      MINIO_ROOT_PASSWORD: lifepilot-secret
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - lifepilot-minio:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
   backend:
     build:
       context: .
@@ -40,10 +57,16 @@ services:
       SPRING_AI_OPENAI_CHAT_OPTIONS_MODEL: ${DEEPSEEK_MODEL:-deepseek-chat}
       LIFEPILOT_SECURITY_AUTH_ENABLED: ${AUTH_ENABLED:-false}
       LIFEPILOT_SECURITY_JWT_SECRET: ${LIFEPILOT_JWT_SECRET:-change-me-change-me-change-me-change-me}
+      LIFEPILOT_MINIO_ENDPOINT: http://minio:9000
+      LIFEPILOT_MINIO_ACCESS_KEY: lifepilot
+      LIFEPILOT_MINIO_SECRET_KEY: lifepilot-secret
+      LIFEPILOT_MINIO_BUCKET: lifepilot-notes
     depends_on:
       postgres:
         condition: service_healthy
       redis:
+        condition: service_healthy
+      minio:
         condition: service_healthy
     ports:
       - "8081:8081"
@@ -59,3 +82,4 @@ services:
 
 volumes:
   lifepilot-postgres:
+  lifepilot-minio:

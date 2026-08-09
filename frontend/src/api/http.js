@@ -31,8 +31,12 @@ export async function request(path, { method = 'GET', body } = {}) {
     options.headers['Authorization'] = token
   }
   if (body !== undefined) {
-    options.headers['Content-Type'] = 'application/json'
-    options.body = JSON.stringify(body)
+    if (body instanceof FormData) {
+      options.body = body
+    } else {
+      options.headers['Content-Type'] = 'application/json'
+      options.body = JSON.stringify(body)
+    }
   }
   let res
   try {

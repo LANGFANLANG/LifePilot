@@ -75,8 +75,8 @@ async function save() {
     </div>
     <div class="review-date-picker">
       <input v-model="reviewDate" type="date" @change="loadExisting" />
-      <button class="btn btn-ghost" :disabled="loading" @click="loadExisting">读取</button>
-      <button class="btn btn-primary" :disabled="loading" @click="draft">{{ loading ? '生成中…' : '生成草稿' }}</button>
+      <button class="btn btn-ghost" :disabled="loading" @click="loadExisting">读取复盘</button>
+      <button class="btn btn-primary" :disabled="loading" @click="draft">{{ loading ? '生成中…' : 'AI 生成草稿' }}</button>
     </div>
   </header>
 
