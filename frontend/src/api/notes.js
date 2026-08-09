@@ -17,3 +17,7 @@ export function uploadNote(file) {
   body.append('file', file)
   return request('/api/notes/upload', { method: 'POST', body })
 }
+
+export function getNoteFileUrl(id, download = false) {
+  return request(`/api/notes/${id}/file-url?download=${download}`)
+}

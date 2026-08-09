@@ -3,6 +3,7 @@ package com.lifepilot.service;
 import com.lifepilot.domain.Note;
 import com.lifepilot.repository.NoteRepository;
 import com.lifepilot.service.dto.CreateNoteCommand;
+import com.lifepilot.service.dto.NoteFileLinkView;
 import com.lifepilot.service.dto.NoteView;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,15 +21,17 @@ public class NoteService {
 
     private final NoteRepository noteRepository;
     private final NoteFileService noteFileService;
+    private final NoteObjectStorage noteObjectStorage;
 
     /**
      * 创建笔记应用服务。
      *
      * @param noteRepository 笔记持久化访问入口
      */
-    public NoteService(NoteRepository noteRepository, NoteFileService noteFileService) {
+    public NoteService(NoteRepository noteRepository, NoteFileService noteFileService, NoteObjectStorage noteObjectStorage) {
         this.noteRepository = noteRepository;
         this.noteFileService = noteFileService;
+        this.noteObjectStorage = noteObjectStorage;
     }
 
     /**
@@ -89,6 +92,26 @@ public class NoteService {
         return noteRepository.findById(id)
                 .map(NoteView::from)
                 .orElseThrow(() -> new IllegalArgumentException("note not found"));
+    }
+
+    /**
+     * Creates a temporary link for the original uploaded file.
+     *
+     * @param id note id
+     * @param download whether to force download disposition
+     * @return temporary file link
+     */
+    @Transactional(readOnly = true)
+    public NoteFileLinkView fileLink(UUID id, boolean download) {
+        Note note = noteRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("note not found"));
+        if (!"FILE".equals(note.getSourceType()) || note.getStoredFilename() == null || note.getStoredFilename().isBlank()) {
+            throw new IllegalArgumentException("note has no uploaded file");
+        }
+        return new NoteFileLinkView(noteObjectStorage.temporaryUrl(
+                note.getStoredFilename(),
+                download ? note.getOriginalFilename() : null
+        ));
     }
 
     private String titleFromFilename(String filename) {

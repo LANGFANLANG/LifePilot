@@ -1,12 +1,13 @@
 <script setup>
 import { computed, onMounted, reactive, ref } from 'vue'
-import { createNote, getNote, listNotes, uploadNote } from '../api/notes'
+import { createNote, getNote, getNoteFileUrl, listNotes, uploadNote } from '../api/notes'
 import { formatDate, greeting } from '../utils/format'
 
 const notes = ref([])
 const loading = ref(true)
 const error = ref('')
 const selected = ref(null)
+const fileUrl = ref('')
 
 const form = reactive({ title: '', content: '' })
 const saving = ref(false)
@@ -40,9 +41,13 @@ async function load() {
 async function openNote(note) {
   if (selected.value?.id === note.id && note.content != null) return
   selected.value = note
+  fileUrl.value = ''
   try {
     const detail = await getNote(note.id)
     selected.value = detail
+    if (isPdfNote(detail)) {
+      fileUrl.value = (await getNoteFileUrl(detail.id)).url
+    }
   } catch (e) {
     error.value = e.message
   }
@@ -84,12 +89,26 @@ async function uploadSelected(event) {
     const created = await uploadNote(file)
     notes.value = [created, ...notes.value]
     selected.value = created
+    fileUrl.value = isPdfNote(created) ? (await getNoteFileUrl(created.id)).url : ''
     event.target.value = ''
   } catch (e) {
     uploadError.value = e.message
   } finally {
     uploading.value = false
   }
+}
+
+function isPdfNote(note) {
+  return note?.sourceType === 'FILE' && (
+    note.contentType === 'application/pdf' ||
+    note.originalFilename?.toLowerCase().endsWith('.pdf')
+  )
+}
+
+async function openOriginal(download = false) {
+  if (!selected.value?.id) return
+  const link = await getNoteFileUrl(selected.value.id, download)
+  window.open(link.url, '_blank', 'noopener')
 }
 
 onMounted(load)
@@ -124,12 +143,12 @@ onMounted(load)
 
       <div class="card form-panel note-upload" style="margin: 0">
         <div class="form-title">上传笔记文件</div>
-        <p>支持 Markdown、文本、CSV、Word 和 Excel，上传后可在右侧查看预览。</p>
+        <p>支持 Markdown、文本、CSV、PDF、Word 和 Excel，上传后可在右侧查看预览。</p>
         <div v-if="uploadError" class="form-error">{{ uploadError }}</div>
         <input
           ref="uploadInput"
           type="file"
-          accept=".md,.markdown,.txt,.csv,.doc,.docx,.xls,.xlsx"
+          accept=".md,.markdown,.txt,.csv,.pdf,.doc,.docx,.xls,.xlsx"
           :disabled="uploading"
           @change="uploadSelected"
         />
@@ -165,8 +184,13 @@ onMounted(load)
         <div class="note-date">{{ formatDate(selected.createdAt) }}</div>
         <div v-if="selected.sourceType === 'FILE'" class="note-file-meta">
           {{ selected.originalFilename }}<template v-if="selected.fileSize"> · {{ Math.ceil(selected.fileSize / 1024) }} KB</template>
+          <div class="note-file-actions">
+            <button type="button" class="btn btn-ghost" @click="openOriginal(false)">查看原文件</button>
+            <button type="button" class="btn btn-ghost" @click="openOriginal(true)">下载</button>
+          </div>
         </div>
-        <div class="note-content">{{ selected.content }}</div>
+        <iframe v-if="isPdfNote(selected) && fileUrl" class="note-pdf-viewer" :src="fileUrl" title="PDF 预览"></iframe>
+        <div v-else class="note-content">{{ selected.content }}</div>
       </template>
       <template v-else>
         <div class="empty" style="border: none; padding: 40px">

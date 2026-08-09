@@ -25,7 +25,7 @@ import java.util.zip.ZipFile;
 public class NoteFileService {
 
     private static final long MAX_FILE_SIZE = 20L * 1024 * 1024;
-    private static final List<String> ALLOWED_EXTENSIONS = List.of("md", "markdown", "txt", "csv", "doc", "docx", "xls", "xlsx");
+    private static final List<String> ALLOWED_EXTENSIONS = List.of("md", "markdown", "txt", "csv", "pdf", "doc", "docx", "xls", "xlsx");
 
     private final NoteObjectStorage objectStorage;
 
@@ -55,7 +55,7 @@ public class NoteFileService {
         String originalFilename = StringUtils.cleanPath(file.getOriginalFilename() == null ? "note" : file.getOriginalFilename());
         String extension = extensionOf(originalFilename);
         if (!ALLOWED_EXTENSIONS.contains(extension)) {
-            throw new IllegalArgumentException("仅支持 md、txt、csv、doc、docx、xls、xlsx 文件");
+            throw new IllegalArgumentException("仅支持 md、txt、csv、pdf、doc、docx、xls、xlsx 文件");
         }
 
         String objectKey = "notes/" + UUID.randomUUID() + "." + extension;
@@ -82,6 +82,7 @@ public class NoteFileService {
     private String extractPreview(Path file, String extension) throws IOException {
         return switch (extension) {
             case "md", "markdown", "txt", "csv" -> Files.readString(file, StandardCharsets.UTF_8);
+            case "pdf" -> "PDF 已上传，可在右侧查看原文件。";
             case "docx" -> extractDocx(file);
             case "xlsx" -> extractXlsx(file);
             case "doc", "xls" -> "已上传原文件。当前暂不支持预览老式 Office 格式，请转换为 docx/xlsx 后重新上传。";

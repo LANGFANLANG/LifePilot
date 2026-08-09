@@ -3,6 +3,7 @@ package com.lifepilot.service;
 import com.lifepilot.domain.Note;
 import com.lifepilot.repository.NoteRepository;
 import com.lifepilot.service.dto.CreateNoteCommand;
+import com.lifepilot.service.dto.NoteFileLinkView;
 import com.lifepilot.service.dto.NoteView;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -31,6 +32,9 @@ class NoteServiceTest {
 
     @Mock
     private NoteFileService noteFileService;
+
+    @Mock
+    private NoteObjectStorage noteObjectStorage;
 
     @InjectMocks
     private NoteService noteService;
@@ -97,5 +101,16 @@ class NoteServiceTest {
         assertThatThrownBy(() -> noteService.get(missingId))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("note not found");
+    }
+
+    @Test
+    void createsTemporaryFileLinkForUploadedNote() {
+        Note note = Note.createFileNote("报告", "PDF 已上传", "报告.pdf", "application/pdf", "notes/report.pdf", 64);
+        when(noteRepository.findById(note.getId())).thenReturn(Optional.of(note));
+        when(noteObjectStorage.temporaryUrl("notes/report.pdf", null)).thenReturn("http://minio/report");
+
+        NoteFileLinkView link = noteService.fileLink(note.getId(), false);
+
+        assertThat(link.url()).isEqualTo("http://minio/report");
     }
 }

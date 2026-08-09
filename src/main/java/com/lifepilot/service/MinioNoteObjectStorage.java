@@ -2,10 +2,10 @@ package com.lifepilot.service;
 
 import io.minio.BucketExistsArgs;
 import io.minio.GetPresignedObjectUrlArgs;
+import io.minio.Http;
 import io.minio.MakeBucketArgs;
 import io.minio.MinioClient;
 import io.minio.PutObjectArgs;
-import io.minio.http.Method;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -63,7 +63,7 @@ public class MinioNoteObjectStorage implements NoteObjectStorage {
             GetPresignedObjectUrlArgs.Builder builder = GetPresignedObjectUrlArgs.builder()
                     .bucket(bucket)
                     .object(objectKey)
-                    .method(Method.GET)
+                    .method(Http.Method.GET)
                     .expiry(60 * 10);
             if (downloadName != null && !downloadName.isBlank()) {
                 String encoded = URLEncoder.encode(downloadName, StandardCharsets.UTF_8).replace("+", "%20");

@@ -4,6 +4,7 @@ import com.lifepilot.api.Result;
 import com.lifepilot.controller.dto.CreateNoteRequest;
 import com.lifepilot.service.NoteService;
 import com.lifepilot.service.dto.CreateNoteCommand;
+import com.lifepilot.service.dto.NoteFileLinkView;
 import com.lifepilot.service.dto.NoteView;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -77,5 +78,20 @@ public class NoteController {
     @GetMapping("/{id}")
     public Result<NoteView> get(@PathVariable UUID id) {
         return Result.success(noteService.get(id));
+    }
+
+    /**
+     * 获取上传笔记原文件的临时访问链接。
+     *
+     * @param id 笔记标识
+     * @param download 是否生成下载链接
+     * @return 临时访问链接
+     */
+    @GetMapping("/{id}/file-url")
+    public Result<NoteFileLinkView> fileUrl(
+            @PathVariable UUID id,
+            @RequestParam(name = "download", defaultValue = "false") boolean download
+    ) {
+        return Result.success(noteService.fileLink(id, download));
     }
 }

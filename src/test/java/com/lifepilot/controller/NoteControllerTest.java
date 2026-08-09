@@ -3,6 +3,7 @@ package com.lifepilot.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lifepilot.controller.dto.CreateNoteRequest;
 import com.lifepilot.service.NoteService;
+import com.lifepilot.service.dto.NoteFileLinkView;
 import com.lifepilot.service.dto.NoteView;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -81,6 +82,16 @@ class NoteControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.title").value("daily"));
+    }
+
+    @Test
+    void returnsNoteFileUrl() throws Exception {
+        UUID id = UUID.randomUUID();
+        when(noteService.fileLink(id, true)).thenReturn(new NoteFileLinkView("http://minio/file"));
+
+        mockMvc.perform(get("/api/notes/{id}/file-url?download=true", id))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.url").value("http://minio/file"));
     }
 
     private static NoteView noteView(UUID id, String title) {
