@@ -25,4 +25,11 @@ public interface NoteObjectStorage {
      * @return temporary URL
      */
     String temporaryUrl(String objectKey, String downloadName);
+
+    /**
+     * Deletes an object if it exists.
+     *
+     * @param objectKey object key
+     */
+    void deleteObject(String objectKey);
 }

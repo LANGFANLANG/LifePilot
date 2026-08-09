@@ -99,6 +99,46 @@ public class Note {
     }
 
     /**
+     * 更新笔记标题和内容。
+     *
+     * @param title 新标题
+     * @param content 新内容
+     */
+    public void update(String title, String content) {
+        this.title = title;
+        this.content = content;
+        this.updatedAt = OffsetDateTime.now();
+    }
+
+    /**
+     * 替换文件笔记的原文件元数据和预览内容。
+     *
+     * @param title 新标题
+     * @param content 新预览内容
+     * @param originalFilename 原始文件名
+     * @param contentType 文件内容类型
+     * @param storedFilename 存储对象键
+     * @param fileSize 文件大小
+     */
+    public void replaceFile(
+            String title,
+            String content,
+            String originalFilename,
+            String contentType,
+            String storedFilename,
+            long fileSize
+    ) {
+        this.title = title;
+        this.content = content;
+        this.sourceType = "FILE";
+        this.originalFilename = originalFilename;
+        this.contentType = contentType;
+        this.storedFilename = storedFilename;
+        this.fileSize = fileSize;
+        this.updatedAt = OffsetDateTime.now();
+    }
+
+    /**
      * 获取笔记标识。
      *
      * @return 笔记标识

@@ -21,6 +21,7 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -53,6 +54,19 @@ class NoteServiceTest {
     }
 
     @Test
+    void updatesNote() {
+        Note note = Note.create("Old", "Old content");
+        when(noteRepository.findById(note.getId())).thenReturn(Optional.of(note));
+        when(noteRepository.save(any(Note.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        NoteView updated = noteService.update(note.getId(), new CreateNoteCommand("New", "New content"));
+
+        assertThat(updated.title()).isEqualTo("New");
+        assertThat(updated.content()).isEqualTo("New content");
+    }
+
+    @Test
     void listsNotesByMostRecentUpdateFirst() {
         Note older = Note.create("Older", "First note");
         Note newer = Note.create("Newer", "Second note");
@@ -81,16 +95,53 @@ class NoteServiceTest {
         when(noteRepository.save(any(Note.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
         when(noteFileService.store(any()))
-                .thenReturn(new NoteFileService.StoredNoteFile("日报.md", "text/markdown", "stored.md", 128, "# 日报"));
+                .thenReturn(new NoteFileService.StoredNoteFile("daily.md", "text/markdown", "notes/daily.md", 128, "# Daily"));
 
         NoteView view = noteService.upload(null);
 
         ArgumentCaptor<Note> captor = ArgumentCaptor.forClass(Note.class);
         verify(noteRepository).save(captor.capture());
-        assertThat(captor.getValue().getTitle()).isEqualTo("日报");
+        assertThat(captor.getValue().getTitle()).isEqualTo("daily");
         assertThat(captor.getValue().getSourceType()).isEqualTo("FILE");
-        assertThat(view.originalFilename()).isEqualTo("日报.md");
-        assertThat(view.content()).isEqualTo("# 日报");
+        assertThat(view.originalFilename()).isEqualTo("daily.md");
+        assertThat(view.content()).isEqualTo("# Daily");
+    }
+
+    @Test
+    void replacesFileNoteAndDeletesOldObject() {
+        Note note = Note.createFileNote("Old", "old", "old.pdf", "application/pdf", "notes/old.pdf", 16);
+        when(noteRepository.findById(note.getId())).thenReturn(Optional.of(note));
+        when(noteFileService.store(any()))
+                .thenReturn(new NoteFileService.StoredNoteFile("new.pdf", "application/pdf", "notes/new.pdf", 32, "PDF uploaded"));
+        when(noteRepository.save(any(Note.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        NoteView updated = noteService.replaceFile(note.getId(), null);
+
+        assertThat(updated.originalFilename()).isEqualTo("new.pdf");
+        verify(noteObjectStorage).deleteObject("notes/old.pdf");
+    }
+
+    @Test
+    void deletesTextNoteWithoutObjectDeletion() {
+        Note note = Note.create("Text", "content");
+        when(noteRepository.findById(note.getId())).thenReturn(Optional.of(note));
+
+        noteService.delete(note.getId());
+
+        verify(noteRepository).deleteById(note.getId());
+        verify(noteObjectStorage, never()).deleteObject(any());
+    }
+
+    @Test
+    void deletesFileNoteObject() {
+        Note note = Note.createFileNote("File", "preview", "a.pdf", "application/pdf", "notes/a.pdf", 16);
+        when(noteRepository.findById(note.getId())).thenReturn(Optional.of(note));
+
+        noteService.delete(note.getId());
+
+        verify(noteRepository).deleteById(note.getId());
+        verify(noteObjectStorage).deleteObject("notes/a.pdf");
     }
 
     @Test
@@ -105,7 +156,7 @@ class NoteServiceTest {
 
     @Test
     void createsTemporaryFileLinkForUploadedNote() {
-        Note note = Note.createFileNote("报告", "PDF 已上传", "报告.pdf", "application/pdf", "notes/report.pdf", 64);
+        Note note = Note.createFileNote("Report", "PDF uploaded", "report.pdf", "application/pdf", "notes/report.pdf", 64);
         when(noteRepository.findById(note.getId())).thenReturn(Optional.of(note));
         when(noteObjectStorage.temporaryUrl("notes/report.pdf", null)).thenReturn("http://minio/report");
 

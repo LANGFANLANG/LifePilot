@@ -62,6 +62,10 @@ class NoteFileServiceTest {
         public String temporaryUrl(String objectKey, String downloadName) {
             return "http://minio/" + objectKey;
         }
+
+        @Override
+        public void deleteObject(String objectKey) {
+        }
     }
 
     private interface PutAssertion {

@@ -2,14 +2,17 @@ package com.lifepilot.controller;
 
 import com.lifepilot.api.Result;
 import com.lifepilot.controller.dto.CreateNoteRequest;
+import com.lifepilot.controller.dto.UpdateNoteRequest;
 import com.lifepilot.service.NoteService;
 import com.lifepilot.service.dto.CreateNoteCommand;
 import com.lifepilot.service.dto.NoteFileLinkView;
 import com.lifepilot.service.dto.NoteView;
 import jakarta.validation.Valid;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -49,6 +52,18 @@ public class NoteController {
     }
 
     /**
+     * 更新笔记。
+     *
+     * @param id 笔记标识
+     * @param request 更新请求
+     * @return 更新后的笔记
+     */
+    @PutMapping("/{id}")
+    public Result<NoteView> update(@PathVariable UUID id, @Valid @RequestBody UpdateNoteRequest request) {
+        return Result.success(noteService.update(id, new CreateNoteCommand(request.title(), request.content())));
+    }
+
+    /**
      * 上传文件并创建文件笔记。
      *
      * @param file 上传的笔记文件
@@ -57,6 +72,18 @@ public class NoteController {
     @PostMapping("/upload")
     public Result<NoteView> upload(@RequestParam("file") MultipartFile file) {
         return Result.success(noteService.upload(file));
+    }
+
+    /**
+     * 替换文件笔记的原文件。
+     *
+     * @param id 笔记标识
+     * @param file 新文件
+     * @return 更新后的笔记
+     */
+    @PutMapping("/{id}/file")
+    public Result<NoteView> replaceFile(@PathVariable UUID id, @RequestParam("file") MultipartFile file) {
+        return Result.success(noteService.replaceFile(id, file));
     }
 
     /**
@@ -93,5 +120,17 @@ public class NoteController {
             @RequestParam(name = "download", defaultValue = "false") boolean download
     ) {
         return Result.success(noteService.fileLink(id, download));
+    }
+
+    /**
+     * 删除笔记。
+     *
+     * @param id 笔记标识
+     * @return 空成功响应
+     */
+    @DeleteMapping("/{id}")
+    public Result<Void> delete(@PathVariable UUID id) {
+        noteService.delete(id);
+        return Result.success(null);
     }
 }

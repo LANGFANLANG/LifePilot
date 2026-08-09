@@ -12,10 +12,24 @@ export function createNote(payload) {
   return request('/api/notes', { method: 'POST', body: payload })
 }
 
+export function updateNote(id, payload) {
+  return request(`/api/notes/${id}`, { method: 'PUT', body: payload })
+}
+
+export function deleteNote(id) {
+  return request(`/api/notes/${id}`, { method: 'DELETE' })
+}
+
 export function uploadNote(file) {
   const body = new FormData()
   body.append('file', file)
   return request('/api/notes/upload', { method: 'POST', body })
+}
+
+export function replaceNoteFile(id, file) {
+  const body = new FormData()
+  body.append('file', file)
+  return request(`/api/notes/${id}/file`, { method: 'PUT', body })
 }
 
 export function getNoteFileUrl(id, download = false) {

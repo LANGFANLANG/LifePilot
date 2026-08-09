@@ -47,6 +47,21 @@ public class NoteService {
     }
 
     /**
+     * Updates a note title and content.
+     *
+     * @param id note id
+     * @param command updated note data
+     * @return updated note view
+     */
+    @Transactional
+    public NoteView update(UUID id, CreateNoteCommand command) {
+        Note note = noteRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("note not found"));
+        note.update(command.title(), command.content());
+        return NoteView.from(noteRepository.save(note));
+    }
+
+    /**
      * Stores an uploaded document as a note with extracted preview content.
      *
      * @param file uploaded note file
@@ -65,6 +80,34 @@ public class NoteService {
                 stored.fileSize()
         );
         return NoteView.from(noteRepository.save(note));
+    }
+
+    /**
+     * Replaces an uploaded note file.
+     *
+     * @param id note id
+     * @param file replacement file
+     * @return updated note view
+     */
+    @Transactional
+    public NoteView replaceFile(UUID id, MultipartFile file) {
+        Note note = noteRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("note not found"));
+        String oldObjectKey = note.getStoredFilename();
+        NoteFileService.StoredNoteFile stored = noteFileService.store(file);
+        note.replaceFile(
+                titleFromFilename(stored.originalFilename()),
+                stored.preview(),
+                stored.originalFilename(),
+                stored.contentType(),
+                stored.storedFilename(),
+                stored.fileSize()
+        );
+        NoteView view = NoteView.from(noteRepository.save(note));
+        if (oldObjectKey != null && !oldObjectKey.equals(stored.storedFilename())) {
+            noteObjectStorage.deleteObject(oldObjectKey);
+        }
+        return view;
     }
 
     /**
@@ -92,6 +135,21 @@ public class NoteService {
         return noteRepository.findById(id)
                 .map(NoteView::from)
                 .orElseThrow(() -> new IllegalArgumentException("note not found"));
+    }
+
+    /**
+     * Deletes a note and its uploaded object when present.
+     *
+     * @param id note id
+     */
+    @Transactional
+    public void delete(UUID id) {
+        Note note = noteRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("note not found"));
+        noteRepository.deleteById(id);
+        if ("FILE".equals(note.getSourceType())) {
+            noteObjectStorage.deleteObject(note.getStoredFilename());
+        }
     }
 
     /**

@@ -6,6 +6,7 @@ import io.minio.Http;
 import io.minio.MakeBucketArgs;
 import io.minio.MinioClient;
 import io.minio.PutObjectArgs;
+import io.minio.RemoveObjectArgs;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -72,6 +73,20 @@ public class MinioNoteObjectStorage implements NoteObjectStorage {
             return minioClient.getPresignedObjectUrl(builder.build());
         } catch (Exception ex) {
             throw new IllegalStateException("笔记文件访问链接生成失败", ex);
+        }
+    }
+
+    @Override
+    public void deleteObject(String objectKey) {
+        if (objectKey == null || objectKey.isBlank()) return;
+        try {
+            ensureBucket();
+            minioClient.removeObject(RemoveObjectArgs.builder()
+                    .bucket(bucket)
+                    .object(objectKey)
+                    .build());
+        } catch (Exception ex) {
+            throw new IllegalStateException("笔记文件删除失败", ex);
         }
     }
 

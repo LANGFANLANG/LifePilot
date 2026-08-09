@@ -1005,6 +1005,25 @@ select {
   margin-bottom: 8px;
 }
 
+.note-reader-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.note-reader-actions,
+.note-edit-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.btn.danger {
+  color: var(--accent);
+}
+
 .note-reader .note-date {
   font-family: var(--font-display);
   font-style: italic;
@@ -1026,6 +1045,15 @@ select {
   gap: 8px;
   flex-wrap: wrap;
   margin-top: 10px;
+}
+
+.note-edit-panel {
+  display: grid;
+  gap: 12px;
+}
+
+.note-edit-panel textarea {
+  min-height: 260px;
 }
 
 .note-pdf-viewer {
