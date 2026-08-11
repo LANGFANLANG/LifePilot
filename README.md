@@ -79,6 +79,32 @@ docker compose ps
 http://localhost:8081
 ```
 
+前端本地开发：
+
+```powershell
+cd frontend
+npm install
+npm run dev
+```
+
+前端默认访问地址：
+
+```text
+http://localhost:5174
+```
+
+如果使用 Docker 启动前端：
+
+```powershell
+docker compose up -d frontend
+```
+
+Docker 前端访问地址：
+
+```text
+http://localhost:5174
+```
+
 健康检查：
 
 ```powershell
