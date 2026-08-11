@@ -1,12 +1,16 @@
 package com.lifepilot.config;
 
+import cn.dev33.satoken.stp.StpUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lifepilot.agent.AgentService;
 import com.lifepilot.agent.dto.AgentResponse;
 import com.lifepilot.controller.ChatController;
 import com.lifepilot.controller.dto.ChatRequest;
+import com.lifepilot.memory.ChatMemoryService;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 import org.springframework.boot.actuate.autoconfigure.endpoint.EndpointAutoConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
@@ -28,7 +32,9 @@ import java.util.UUID;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.options;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
@@ -58,6 +64,9 @@ class SecurityConfigTest {
         @MockBean
         private AgentService agentService;
 
+        @MockBean
+        private ChatMemoryService chatMemoryService;
+
         @Test
         void exposesHealthEndpoint() throws Exception {
             mockMvc.perform(get("/actuator/health"))
@@ -69,12 +78,27 @@ class SecurityConfigTest {
             UUID conversationId = UUID.randomUUID();
             when(agentService.chat(any())).thenReturn(new AgentResponse(conversationId, "Task created"));
 
-            mockMvc.perform(post("/api/chat")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(
-                                    new ChatRequest(conversationId, "Create a task")
-                            )))
-                    .andExpect(status().isOk());
+            try (MockedStatic<StpUtil> stp = Mockito.mockStatic(StpUtil.class)) {
+                stp.when(StpUtil::isLogin).thenReturn(false);
+
+                mockMvc.perform(post("/api/chat")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(
+                                        new ChatRequest(conversationId, "Create a task")
+                                )))
+                        .andExpect(status().isOk());
+            }
+        }
+
+        @Test
+        void allowsLocalFrontendCorsPreflight() throws Exception {
+            mockMvc.perform(options("/api/chat")
+                            .header("Origin", "http://127.0.0.1:5174")
+                            .header("Access-Control-Request-Method", "POST")
+                            .header("Access-Control-Request-Headers", "authorization,content-type"))
+                    .andExpect(status().isOk())
+                    .andExpect(header().string("Access-Control-Allow-Origin", "http://127.0.0.1:5174"))
+                    .andExpect(header().string("Access-Control-Allow-Credentials", "true"));
         }
     }
 
@@ -100,6 +124,9 @@ class SecurityConfigTest {
         @MockBean
         private AgentService agentService;
 
+        @MockBean
+        private ChatMemoryService chatMemoryService;
+
         @Test
         void exposesHealthEndpoint() throws Exception {
             mockMvc.perform(get("/actuator/health"))
@@ -110,12 +137,27 @@ class SecurityConfigTest {
         void doesNotBlockApiThroughSpringSecurityWhenAuthIsEnabled() throws Exception {
             when(agentService.chat(any())).thenReturn(new AgentResponse(UUID.randomUUID(), "Task created"));
 
-            mockMvc.perform(post("/api/chat")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(
-                                    new ChatRequest(UUID.randomUUID(), "Create a task")
-                            )))
-                    .andExpect(status().isOk());
+            try (MockedStatic<StpUtil> stp = Mockito.mockStatic(StpUtil.class)) {
+                stp.when(StpUtil::isLogin).thenReturn(false);
+
+                mockMvc.perform(post("/api/chat")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(
+                                        new ChatRequest(UUID.randomUUID(), "Create a task")
+                                )))
+                        .andExpect(status().isOk());
+            }
+        }
+
+        @Test
+        void allowsTunnelFrontendCorsPreflightWhenAuthIsEnabled() throws Exception {
+            mockMvc.perform(options("/api/chat")
+                            .header("Origin", "https://1b9610c.r19.cpolar.top")
+                            .header("Access-Control-Request-Method", "POST")
+                            .header("Access-Control-Request-Headers", "authorization,content-type"))
+                    .andExpect(status().isOk())
+                    .andExpect(header().string("Access-Control-Allow-Origin", "https://1b9610c.r19.cpolar.top"))
+                    .andExpect(header().string("Access-Control-Allow-Credentials", "true"));
         }
     }
 }

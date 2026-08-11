@@ -291,7 +291,7 @@ Controller 使用 `controller/dto` 接收请求，Service 使用 `service/dto` �
 - PostgreSQL: `localhost:15432`
 - Redis: `localhost:6380`
 - Backend: `localhost:8081`
-- 可选 Docker frontend: `localhost:3000`
+- 可选 Docker frontend: `localhost:5174`
 
 主要运行命令：
 

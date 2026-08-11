@@ -54,11 +54,11 @@ public class AgentService {
         planPreviewActionContext.begin();
         try {
             conversationId = resolveConversationId(request);
-            chatMemoryService.appendMessage(conversationId, ChatRole.USER, request.message());
-            List<MessageView> messages = chatMemoryService.loadRecentMessages(conversationId);
+            chatMemoryService.appendMessage(request.userId(), conversationId, ChatRole.USER, request.message());
+            List<MessageView> messages = chatMemoryService.loadMessages(request.userId(), conversationId);
             String response = aiClient.chat(messages);
             List<AgentAction> actions = planPreviewActionContext.currentActions();
-            chatMemoryService.appendMessage(conversationId, ChatRole.ASSISTANT, response);
+            chatMemoryService.appendMessage(request.userId(), conversationId, ChatRole.ASSISTANT, response);
             executionLogService.recordSuccess(conversationId, "agent.chat", request.message(), response);
             return new AgentResponse(conversationId, response, actions);
         } catch (RuntimeException ex) {
@@ -71,9 +71,10 @@ public class AgentService {
 
     private UUID resolveConversationId(AgentRequest request) {
         if (request.conversationId() != null) {
+            chatMemoryService.requireConversation(request.userId(), request.conversationId());
             return request.conversationId();
         }
-        ConversationView conversation = chatMemoryService.createConversation(request.message());
+        ConversationView conversation = chatMemoryService.createConversation(request.userId(), request.message());
         return conversation.id();
     }
 }

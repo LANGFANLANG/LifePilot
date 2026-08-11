@@ -16,8 +16,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -43,6 +45,35 @@ class ChatMemoryServiceTest {
 
         assertThat(conversation.id()).isNotNull();
         assertThat(conversation.title()).isEqualTo("Project planning");
+    }
+
+    @Test
+    void createsConversationForUser() {
+        UUID userId = UUID.randomUUID();
+        when(conversationRepository.save(any(Conversation.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        ConversationView conversation = chatMemoryService.createConversation(userId, "Project planning");
+
+        ArgumentCaptor<Conversation> captor = ArgumentCaptor.forClass(Conversation.class);
+        verify(conversationRepository).save(captor.capture());
+        assertThat(conversation.id()).isNotNull();
+        assertThat(conversation.title()).isEqualTo("Project planning");
+        assertThat(captor.getValue().getUserId()).isEqualTo(userId);
+    }
+
+    @Test
+    void listsConversationsForUserByRepositoryOrder() {
+        UUID userId = UUID.randomUUID();
+        Conversation first = Conversation.create(userId, "First");
+        Conversation second = Conversation.create(userId, "Second");
+        when(conversationRepository.findByUserIdOrderByUpdatedAtDesc(userId))
+                .thenReturn(List.of(second, first));
+
+        List<ConversationView> conversations = chatMemoryService.listConversations(userId);
+
+        assertThat(conversations).extracting(ConversationView::title)
+                .containsExactly("Second", "First");
     }
 
     @Test
@@ -82,5 +113,31 @@ class ChatMemoryServiceTest {
 
         assertThat(messages).extracting(MessageView::role)
                 .containsExactly(ChatRole.USER, ChatRole.ASSISTANT);
+    }
+
+    @Test
+    void loadsMessagesOnlyForOwningUser() {
+        UUID userId = UUID.randomUUID();
+        Conversation conversation = Conversation.create(userId, "Project planning");
+        ChatMessage userMessage = conversation.addMessage(ChatRole.USER, "Create a task");
+        when(conversationRepository.findByIdAndUserId(conversation.getId(), userId))
+                .thenReturn(Optional.of(conversation));
+        when(chatMessageRepository.findByConversation_IdOrderByCreatedAtAsc(conversation.getId()))
+                .thenReturn(List.of(userMessage));
+
+        List<MessageView> messages = chatMemoryService.loadMessages(userId, conversation.getId());
+
+        assertThat(messages).extracting(MessageView::content).containsExactly("Create a task");
+    }
+
+    @Test
+    void rejectsAppendingMessageToAnotherUsersConversation() {
+        UUID userId = UUID.randomUUID();
+        UUID conversationId = UUID.randomUUID();
+        when(conversationRepository.findByIdAndUserId(conversationId, userId)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> chatMemoryService.appendMessage(userId, conversationId, ChatRole.USER, "Nope"))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("conversation not found");
     }
 }

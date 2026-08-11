@@ -15,6 +15,8 @@ public class Conversation {
     @TableId
     private UUID id;
 
+    private UUID userId;
+
     private String title;
 
     private OffsetDateTime createdAt;
@@ -27,8 +29,9 @@ public class Conversation {
     protected Conversation() {
     }
 
-    private Conversation(UUID id, String title, OffsetDateTime createdAt, OffsetDateTime updatedAt) {
+    private Conversation(UUID id, UUID userId, String title, OffsetDateTime createdAt, OffsetDateTime updatedAt) {
         this.id = id;
+        this.userId = userId;
         this.title = title;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
@@ -41,8 +44,19 @@ public class Conversation {
      * @return 新建会话
      */
     public static Conversation create(String title) {
+        return create(null, title);
+    }
+
+    /**
+     * 鍒涘缓褰掑睘鎸囧畾鐢ㄦ埛鐨勮亰澶╀細璇濄€?
+     *
+     * @param userId 浼氳瘽鎵€灞炵敤鎴锋爣璇?
+     * @param title 浼氳瘽鏍囬
+     * @return 鏂板缓浼氳瘽
+     */
+    public static Conversation create(UUID userId, String title) {
         OffsetDateTime now = OffsetDateTime.now();
-        return new Conversation(UUID.randomUUID(), title, now, now);
+        return new Conversation(UUID.randomUUID(), userId, title, now, now);
     }
 
     /**
@@ -64,6 +78,15 @@ public class Conversation {
      */
     public UUID getId() {
         return id;
+    }
+
+    /**
+     * 鑾峰彇浼氳瘽鎵€灞炵敤鎴锋爣璇嗐€?
+     *
+     * @return 鎵€灞炵敤鎴锋爣璇?
+     */
+    public UUID getUserId() {
+        return userId;
     }
 
     /**

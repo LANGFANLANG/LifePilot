@@ -847,6 +847,12 @@ select {
   color: var(--ink);
 }
 
+.review-message {
+  margin-bottom: 14px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
 .review-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -1072,6 +1078,93 @@ select {
 }
 
 /* ---------- Chat ---------- */
+
+.chat-workspace {
+  display: grid;
+  grid-template-columns: 240px minmax(0, 1fr);
+  gap: 22px;
+  height: calc(100vh - 118px);
+  min-height: 480px;
+}
+
+.chat-workspace .chat-shell {
+  height: 100%;
+  min-height: 0;
+}
+
+.chat-history {
+  border-right: 1px solid var(--hairline);
+  padding-right: 16px;
+  overflow-y: auto;
+}
+
+.chat-history-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.chat-history-head span {
+  font-size: 13px;
+  color: var(--muted);
+  font-weight: 650;
+}
+
+.chat-history-head .btn {
+  padding: 6px 9px;
+  font-size: 12px;
+}
+
+.chat-history-item {
+  width: 100%;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--ink-soft);
+  text-align: left;
+  padding: 10px 11px;
+  margin-bottom: 6px;
+}
+
+.chat-history-item:hover {
+  background: rgba(230, 223, 212, 0.55);
+}
+
+.chat-history-item.active {
+  background: var(--ink);
+  color: var(--bg);
+}
+
+.chat-history-item span,
+.chat-history-item time {
+  display: block;
+}
+
+.chat-history-item span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13.5px;
+}
+
+.chat-history-item time {
+  margin-top: 4px;
+  font-family: var(--font-display);
+  font-size: 11.5px;
+  color: var(--muted);
+}
+
+.chat-history-item.active time {
+  color: rgba(246, 243, 238, 0.62);
+}
+
+.chat-history-empty {
+  color: var(--muted);
+  font-size: 13px;
+  padding: 18px 8px;
+}
 
 .chat-shell {
   display: grid;
@@ -1451,6 +1544,19 @@ select {
 
   .chat-shell {
     height: calc(100vh - 200px);
+  }
+
+  .chat-workspace {
+    grid-template-columns: 1fr;
+    height: calc(100vh - 200px);
+  }
+
+  .chat-history {
+    border-right: 0;
+    border-bottom: 1px solid var(--hairline);
+    padding-right: 0;
+    padding-bottom: 10px;
+    max-height: 160px;
   }
 
   .today-metrics,

@@ -42,22 +42,30 @@ class AgentServiceTest {
 
     @Test
     void savesMessagesAndReturnsConversationResponse() {
+        UUID userId = UUID.randomUUID();
         UUID conversationId = UUID.randomUUID();
         MessageView userMessage = messageView(conversationId, ChatRole.USER, "Create a task");
         MessageView assistantMessage = messageView(conversationId, ChatRole.ASSISTANT, "Task created");
-        when(chatMemoryService.appendMessage(conversationId, ChatRole.USER, "Create a task"))
+        when(chatMemoryService.requireConversation(userId, conversationId))
+                .thenReturn(new ConversationView(
+                        conversationId,
+                        "Create a task",
+                        OffsetDateTime.parse("2026-07-10T10:00:00+08:00"),
+                        OffsetDateTime.parse("2026-07-10T10:00:00+08:00")
+                ));
+        when(chatMemoryService.appendMessage(userId, conversationId, ChatRole.USER, "Create a task"))
                 .thenReturn(userMessage);
-        when(chatMemoryService.loadRecentMessages(conversationId)).thenReturn(List.of(userMessage));
+        when(chatMemoryService.loadMessages(userId, conversationId)).thenReturn(List.of(userMessage));
         when(aiClient.chat(List.of(userMessage))).thenReturn("Task created");
         when(planPreviewActionContext.currentActions()).thenReturn(List.of());
-        when(chatMemoryService.appendMessage(conversationId, ChatRole.ASSISTANT, "Task created"))
+        when(chatMemoryService.appendMessage(userId, conversationId, ChatRole.ASSISTANT, "Task created"))
                 .thenReturn(assistantMessage);
 
-        AgentResponse response = agentService.chat(new AgentRequest(conversationId, "Create a task"));
+        AgentResponse response = agentService.chat(new AgentRequest(userId, conversationId, "Create a task"));
 
         verify(aiClient).chat(List.of(userMessage));
-        verify(chatMemoryService).appendMessage(conversationId, ChatRole.USER, "Create a task");
-        verify(chatMemoryService).appendMessage(conversationId, ChatRole.ASSISTANT, "Task created");
+        verify(chatMemoryService).appendMessage(userId, conversationId, ChatRole.USER, "Create a task");
+        verify(chatMemoryService).appendMessage(userId, conversationId, ChatRole.ASSISTANT, "Task created");
         verify(executionLogService).recordSuccess(conversationId, "agent.chat", "Create a task", "Task created");
         assertThat(response.conversationId()).isEqualTo(conversationId);
         assertThat(response.content()).isEqualTo("Task created");
@@ -66,6 +74,7 @@ class AgentServiceTest {
 
     @Test
     void createsConversationWhenRequestHasNoConversationId() {
+        UUID userId = UUID.randomUUID();
         UUID conversationId = UUID.randomUUID();
         ConversationView conversation = new ConversationView(
                 conversationId,
@@ -74,31 +83,39 @@ class AgentServiceTest {
                 OffsetDateTime.parse("2026-07-10T10:00:00+08:00")
         );
         MessageView userMessage = messageView(conversationId, ChatRole.USER, "Create a task");
-        when(chatMemoryService.createConversation("Create a task")).thenReturn(conversation);
-        when(chatMemoryService.appendMessage(conversationId, ChatRole.USER, "Create a task"))
+        when(chatMemoryService.createConversation(userId, "Create a task")).thenReturn(conversation);
+        when(chatMemoryService.appendMessage(userId, conversationId, ChatRole.USER, "Create a task"))
                 .thenReturn(userMessage);
-        when(chatMemoryService.loadRecentMessages(conversationId)).thenReturn(List.of(userMessage));
+        when(chatMemoryService.loadMessages(userId, conversationId)).thenReturn(List.of(userMessage));
         when(aiClient.chat(List.of(userMessage))).thenReturn("Task created");
         when(planPreviewActionContext.currentActions()).thenReturn(List.of());
-        when(chatMemoryService.appendMessage(conversationId, ChatRole.ASSISTANT, "Task created"))
+        when(chatMemoryService.appendMessage(userId, conversationId, ChatRole.ASSISTANT, "Task created"))
                 .thenReturn(messageView(conversationId, ChatRole.ASSISTANT, "Task created"));
 
-        AgentResponse response = agentService.chat(new AgentRequest(null, "Create a task"));
+        AgentResponse response = agentService.chat(new AgentRequest(userId, null, "Create a task"));
 
-        verify(chatMemoryService).createConversation("Create a task");
+        verify(chatMemoryService).createConversation(userId, "Create a task");
         assertThat(response.conversationId()).isEqualTo(conversationId);
     }
 
     @Test
     void recordsFailedAgentExecutionAndRethrows() {
+        UUID userId = UUID.randomUUID();
         UUID conversationId = UUID.randomUUID();
         MessageView userMessage = messageView(conversationId, ChatRole.USER, "Create a task");
-        when(chatMemoryService.appendMessage(conversationId, ChatRole.USER, "Create a task"))
+        when(chatMemoryService.requireConversation(userId, conversationId))
+                .thenReturn(new ConversationView(
+                        conversationId,
+                        "Create a task",
+                        OffsetDateTime.parse("2026-07-10T10:00:00+08:00"),
+                        OffsetDateTime.parse("2026-07-10T10:00:00+08:00")
+                ));
+        when(chatMemoryService.appendMessage(userId, conversationId, ChatRole.USER, "Create a task"))
                 .thenReturn(userMessage);
-        when(chatMemoryService.loadRecentMessages(conversationId)).thenReturn(List.of(userMessage));
+        when(chatMemoryService.loadMessages(userId, conversationId)).thenReturn(List.of(userMessage));
         when(aiClient.chat(List.of(userMessage))).thenThrow(new IllegalStateException("model unavailable"));
 
-        assertThatThrownBy(() -> agentService.chat(new AgentRequest(conversationId, "Create a task")))
+        assertThatThrownBy(() -> agentService.chat(new AgentRequest(userId, conversationId, "Create a task")))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessage("model unavailable");
 

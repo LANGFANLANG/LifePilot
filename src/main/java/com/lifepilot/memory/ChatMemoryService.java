@@ -48,6 +48,43 @@ public class ChatMemoryService {
     }
 
     /**
+     * Creates a chat conversation owned by the given user.
+     *
+     * @param userId user identifier
+     * @param title conversation title
+     * @return created conversation view
+     */
+    @Transactional
+    public ConversationView createConversation(UUID userId, String title) {
+        return ConversationView.from(conversationRepository.save(Conversation.create(userId, title)));
+    }
+
+    /**
+     * Lists conversations owned by the given user, newest first.
+     *
+     * @param userId user identifier
+     * @return conversation views
+     */
+    @Transactional(readOnly = true)
+    public List<ConversationView> listConversations(UUID userId) {
+        return conversationRepository.findByUserIdOrderByUpdatedAtDesc(userId).stream()
+                .map(ConversationView::from)
+                .toList();
+    }
+
+    /**
+     * Loads a user-owned conversation or fails.
+     *
+     * @param userId user identifier
+     * @param conversationId conversation identifier
+     * @return conversation view
+     */
+    @Transactional(readOnly = true)
+    public ConversationView requireConversation(UUID userId, UUID conversationId) {
+        return ConversationView.from(findOwnedConversation(userId, conversationId));
+    }
+
+    /**
      * 将消息追加到指定会话。
      *
      * @param conversationId 会话标识
@@ -66,6 +103,23 @@ public class ChatMemoryService {
     }
 
     /**
+     * Appends a message to a user-owned conversation.
+     *
+     * @param userId user identifier
+     * @param conversationId conversation identifier
+     * @param role message role
+     * @param content message content
+     * @return saved message view
+     */
+    @Transactional
+    public MessageView appendMessage(UUID userId, UUID conversationId, ChatRole role, String content) {
+        Conversation conversation = findOwnedConversation(userId, conversationId);
+        ChatMessage message = conversation.addMessage(role, content);
+        conversationRepository.save(conversation);
+        return MessageView.from(chatMessageRepository.save(message));
+    }
+
+    /**
      * 按创建时间正序读取指定会话的消息。
      *
      * @param conversationId 会话标识
@@ -76,5 +130,23 @@ public class ChatMemoryService {
         return chatMessageRepository.findByConversation_IdOrderByCreatedAtAsc(conversationId).stream()
                 .map(MessageView::from)
                 .toList();
+    }
+
+    /**
+     * Loads messages for a user-owned conversation.
+     *
+     * @param userId user identifier
+     * @param conversationId conversation identifier
+     * @return message views ordered by creation time
+     */
+    @Transactional(readOnly = true)
+    public List<MessageView> loadMessages(UUID userId, UUID conversationId) {
+        findOwnedConversation(userId, conversationId);
+        return loadRecentMessages(conversationId);
+    }
+
+    private Conversation findOwnedConversation(UUID userId, UUID conversationId) {
+        return conversationRepository.findByIdAndUserId(conversationId, userId)
+                .orElseThrow(() -> new IllegalArgumentException("conversation not found"));
     }
 }
